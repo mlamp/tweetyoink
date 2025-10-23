@@ -156,6 +156,10 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
 - [ ] TXXX Security hardening
 - [ ] TXXX Run quickstart.md validation
+- [ ] TXXX Create implementation summary in specs/[###-feature]/implementation-summary.md (if needed)
+- [ ] TXXX Create success criteria validation in specs/[###-feature]/success-criteria.md (if needed)
+
+**Note**: All feature-specific documentation (summaries, validations, testing guides) MUST be created in the feature's specs directory, NOT in the repository root.
 
 ---
 

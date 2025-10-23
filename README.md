@@ -1,0 +1,84 @@
+# TweetYoink
+
+[![CI](https://github.com/mlamp/tweetyoink/actions/workflows/ci.yml/badge.svg)](https://github.com/mlamp/tweetyoink/actions/workflows/ci.yml)
+
+A Chrome extension for capturing tweets from Twitter/X for LLM analysis.
+
+## Description
+
+TweetYoink allows you to capture tweets with complete context (text, author, metrics, timestamps, media) and send them to a configurable backend for analysis by Large Language Models.
+
+## Features
+
+- 📥 Capture tweets with one click
+- 🎯 Extract structured data (no screenshots needed)
+- 🔒 User privacy first - you control what gets captured
+- ⚙️ Configurable backend URL
+- 🚀 Built with TypeScript + Vite for fast development
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 18+ and npm
+- Chrome or Chromium-based browser
+
+### Installation
+
+```bash
+# Install dependencies
+npm install
+
+# Build the extension
+npm run build
+
+# Load in Chrome
+# 1. Open chrome://extensions
+# 2. Enable "Developer mode"
+# 3. Click "Load unpacked"
+# 4. Select the `dist/` folder
+```
+
+### Development
+
+```bash
+# Watch mode (auto-rebuild on changes)
+npm run watch
+
+# Type check
+npm run type-check
+
+# Development server with HMR
+npm run dev
+```
+
+## Project Structure
+
+```
+tweetyoink/
+├── src/
+│   ├── types/          # TypeScript type definitions
+│   ├── extractors/     # DOM extraction logic
+│   ├── popup/          # Extension popup UI
+│   ├── content-script.ts
+│   └── service-worker.ts
+├── public/
+│   ├── icons/          # Extension icons
+│   └── manifest.json   # Chrome extension manifest
+└── dist/               # Build output (load this in Chrome)
+```
+
+## Technology Stack
+
+- **TypeScript 5.x** - Type-safe development
+- **Vite** - Fast build tool
+- **@crxjs/vite-plugin** - Chrome extension support
+- **Manifest V3** - Latest Chrome extension standard
+
+## License
+
+MIT
+
+## Version
+
+0.1.0 (Initial Setup)
