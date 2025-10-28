@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TweetYoink Options</title>
+  <link rel="stylesheet" href="./options.css">
+</head>
+<body>
+  <div class="container">
+    <h1>TweetYoink Options</h1>
+
+    <section class="section">
+      <h2>Endpoint Configuration</h2>
+      <div class="form-group">
+        <label for="endpoint-url">POST Endpoint URL</label>
+        <input
+          type="url"
+          id="endpoint-url"
+          placeholder="https://your-backend.com/api/tweets"
+        >
+        <small>URL where captured tweet data will be POSTed</small>
+      </div>
+
+      <div class="form-group">
+        <label for="post-timeout">Request Timeout (seconds)</label>
+        <input
+          type="number"
+          id="post-timeout"
+          min="5"
+          max="120"
+          value="30"
+        >
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Permissions</h2>
+      <p>Grant permission to POST data to your endpoint domain:</p>
+      <button id="grant-permission" class="button">Grant Permission</button>
+      <span id="permission-status"></span>
+    </section>
+
+    <section class="section">
+      <h2>Custom Headers (Optional)</h2>
+      <p>Add authentication headers or custom HTTP headers for your endpoint:</p>
+
+      <div id="headers-list"></div>
+
+      <button id="add-header" class="button">+ Add Header</button>
+    </section>
+
+    <section class="section">
+      <h2>Async Polling (Optional)</h2>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="enable-polling" checked>
+          Enable async polling for long-running operations
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label for="polling-interval">Polling Interval (seconds)</label>
+        <input
+          type="number"
+          id="polling-interval"
+          min="2"
+          max="60"
+          value="5"
+        >
+        <small>Status endpoint is automatically constructed as {endpoint}/status</small>
+      </div>
+    </section>
+
+    <div class="actions">
+      <button id="save-config" class="button button-primary">Save Configuration</button>
+      <button id="test-connection" class="button">Test Connection</button>
+    </div>
+
+    <div id="status-message" class="status-message"></div>
+  </div>
+
+  <script type="module" src="./options.ts"></script>
+</body>
+</html>

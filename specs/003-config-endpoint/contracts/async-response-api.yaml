@@ -1,0 +1,538 @@
+openapi: 3.0.3
+info:
+  title: TweetYoink Async Response API Contract
+  version: 1.0.0
+  description: |
+    API contract for backend endpoints that receive tweet data from TweetYoink extension.
+    Supports both synchronous (immediate) and asynchronous (polling-based) responses.
+
+    This specification defines the expected request/response formats for backend implementations.
+    Backend servers are free to implement any technology stack as long as they conform to this contract.
+
+servers:
+  - url: https://api.example.com
+    description: Example backend server (user-configured)
+
+paths:
+  /:
+    post:
+      summary: Receive captured tweet data
+      description: |
+        POST endpoint where TweetYoink sends captured tweet data.
+        Backend can respond immediately (synchronous) or return a request ID for async processing.
+
+        Note: The endpoint URL is user-configured. This path represents the base endpoint.
+        Example: If user configures http://localhost:3000/api/tweets, POST goes to that URL.
+
+      operationId: receiveTweetData
+      tags:
+        - Tweet Capture
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TweetData'
+
+            examples:
+              simpleTweet:
+                summary: Simple tweet with text and author
+                value:
+                  text: "Just deployed the new feature to production!"
+                  author:
+                    handle: "johndoe"
+                    displayName: "John Doe"
+                    isVerified: false
+                  timestamp: "2025-10-28T15:30:00.000Z"
+                  metrics:
+                    replyCount: 5
+                    retweetCount: 12
+                    likeCount: 48
+                    bookmarkCount: 3
+                    viewCount: 1250
+                  media: []
+                  linkCard: null
+                  tweetType:
+                    isQuote: false
+                    isRetweet: false
+                    isReply: false
+                  parent: null
+                  metadata:
+                    confidence: 0.95
+                    capturedAt: "2025-10-28T15:31:23.456Z"
+                    extractionTier: "high-confidence"
+                    warnings: []
+                    duration: 45
+
+              quoteTweetWithVideo:
+                summary: Quote tweet containing video
+                value:
+                  text: "This is amazing! Check out the demo"
+                  author:
+                    handle: "techreviewer"
+                    displayName: "Tech Reviewer"
+                    isVerified: true
+                  timestamp: "2025-10-28T14:20:00.000Z"
+                  metrics:
+                    replyCount: 120
+                    retweetCount: 450
+                    likeCount: 2100
+                    bookmarkCount: 89
+                    viewCount: 45000
+                  media: []
+                  linkCard: null
+                  tweetType:
+                    isQuote: true
+                    isRetweet: false
+                    isReply: false
+                  parent:
+                    text: "New product launch video"
+                    author:
+                      handle: "companyofficial"
+                      displayName: "Company Official"
+                      isVerified: true
+                    media:
+                      - type: "video"
+                        url: "blob:https://x.com/abc123"
+                        thumbnailUrl: "https://pbs.twimg.com/video_thumb/abc123.jpg"
+                        altText: null
+                        width: null
+                        height: null
+                  metadata:
+                    confidence: 0.96
+                    capturedAt: "2025-10-28T14:21:15.789Z"
+                    extractionTier: "high-confidence"
+
+      responses:
+        '200':
+          description: Success - Tweet received and processed
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/SynchronousResponse'
+                  - $ref: '#/components/schemas/AsyncResponse'
+
+              examples:
+                synchronousSuccess:
+                  summary: Immediate processing complete
+                  value:
+                    status: "completed"
+                    result:
+                      tweetId: "tweet_abc123"
+                      processed: true
+                      analysisScore: 0.87
+                      categories: ["technology", "ai"]
+
+                asyncPending:
+                  summary: Async processing required
+                  value:
+                    status: "pending"
+                    requestId: "req_xyz789"
+                    estimatedDuration: 120
+                    message: "Tweet queued for LLM analysis"
+
+        '400':
+          description: Bad Request - Invalid tweet data format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "failed"
+                error:
+                  code: "INVALID_TWEET_DATA"
+                  message: "Required field 'author.handle' is missing"
+
+        '401':
+          description: Unauthorized - Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "failed"
+                error:
+                  code: "UNAUTHORIZED"
+                  message: "Invalid API key"
+
+        '429':
+          description: Too Many Requests - Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "failed"
+                error:
+                  code: "RATE_LIMIT_EXCEEDED"
+                  message: "Maximum 100 tweets per hour exceeded"
+
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "failed"
+                error:
+                  code: "INTERNAL_ERROR"
+                  message: "Database connection failed"
+
+  /status:
+    post:
+      summary: Poll async request status
+      description: |
+        Check the status of an async tweet processing request.
+        Extension polls this endpoint until status becomes 'completed' or 'failed'.
+
+        Note: The status endpoint is automatically constructed by appending /status to the base endpoint URL.
+        Example: If base endpoint is http://localhost:3000/api, status endpoint is http://localhost:3000/api/status
+
+      operationId: pollRequestStatus
+      tags:
+        - Async Processing
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - requestId
+              properties:
+                requestId:
+                  type: string
+                  description: Request ID returned from POST / response
+                  example: "req_xyz789"
+
+      responses:
+        '200':
+          description: Status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PollingStatusResponse'
+
+              examples:
+                processing:
+                  summary: Still processing
+                  value:
+                    status: "processing"
+                    progress: 0.65
+                    message: "Analyzing sentiment and categorizing content..."
+
+                completed:
+                  summary: Processing complete
+                  value:
+                    status: "completed"
+                    progress: 1.0
+                    result:
+                      tweetId: "tweet_abc123"
+                      analysisScore: 0.87
+                      categories: ["technology", "ai"]
+                      sentiment: "positive"
+
+                failed:
+                  summary: Processing failed
+                  value:
+                    status: "failed"
+                    error:
+                      code: "LLM_TIMEOUT"
+                      message: "LLM analysis exceeded 5 minute timeout"
+
+        '404':
+          description: Request ID not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "failed"
+                error:
+                  code: "REQUEST_NOT_FOUND"
+                  message: "Request ID not found or expired"
+
+components:
+  schemas:
+    TweetData:
+      type: object
+      description: Complete tweet data extracted by TweetYoink extension
+      required:
+        - text
+        - author
+        - timestamp
+        - metrics
+        - media
+        - tweetType
+        - metadata
+      properties:
+        text:
+          type: string
+          nullable: true
+          description: Tweet text content
+        author:
+          $ref: '#/components/schemas/Author'
+        timestamp:
+          type: string
+          format: date-time
+          nullable: true
+          description: Tweet timestamp in ISO 8601 format
+        metrics:
+          $ref: '#/components/schemas/Metrics'
+        media:
+          type: array
+          items:
+            $ref: '#/components/schemas/MediaData'
+        linkCard:
+          $ref: '#/components/schemas/LinkCardData'
+        tweetType:
+          $ref: '#/components/schemas/TweetType'
+        parent:
+          $ref: '#/components/schemas/TweetData'
+          description: Quoted tweet (if tweetType.isQuote is true)
+        metadata:
+          $ref: '#/components/schemas/ExtractionMetadata'
+
+    Author:
+      type: object
+      required:
+        - handle
+        - displayName
+        - isVerified
+      properties:
+        handle:
+          type: string
+          nullable: true
+          description: Twitter handle without @ symbol
+          example: "johndoe"
+        displayName:
+          type: string
+          nullable: true
+          description: User's display name
+          example: "John Doe"
+        isVerified:
+          type: boolean
+          description: Whether user has verified badge
+        profileImageUrl:
+          type: string
+          nullable: true
+          description: Profile image URL
+
+    Metrics:
+      type: object
+      properties:
+        replyCount:
+          type: integer
+          nullable: true
+        retweetCount:
+          type: integer
+          nullable: true
+        likeCount:
+          type: integer
+          nullable: true
+        bookmarkCount:
+          type: integer
+          nullable: true
+        viewCount:
+          type: integer
+          nullable: true
+
+    MediaData:
+      type: object
+      required:
+        - type
+        - url
+      properties:
+        type:
+          type: string
+          enum: [image, video, gif]
+        url:
+          type: string
+          description: Media URL (may be blob URL for videos)
+        thumbnailUrl:
+          type: string
+          nullable: true
+          description: Thumbnail/poster image URL
+        altText:
+          type: string
+          nullable: true
+        width:
+          type: integer
+          nullable: true
+        height:
+          type: integer
+          nullable: true
+
+    LinkCardData:
+      type: object
+      nullable: true
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          description: Link card destination URL
+        title:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        imageUrl:
+          type: string
+          nullable: true
+        domain:
+          type: string
+          nullable: true
+
+    TweetType:
+      type: object
+      required:
+        - isQuote
+        - isRetweet
+        - isReply
+      properties:
+        isQuote:
+          type: boolean
+        isRetweet:
+          type: boolean
+        isReply:
+          type: boolean
+
+    ExtractionMetadata:
+      type: object
+      required:
+        - confidence
+        - capturedAt
+        - extractionTier
+        - warnings
+        - duration
+      properties:
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Extraction confidence score
+        capturedAt:
+          type: string
+          format: date-time
+          description: When tweet was captured
+        extractionTier:
+          type: string
+          description: Quality tier of extraction
+          example: "high-confidence"
+        warnings:
+          type: array
+          items:
+            type: string
+        duration:
+          type: integer
+          description: Extraction duration in milliseconds
+
+    SynchronousResponse:
+      type: object
+      description: Immediate processing complete
+      required:
+        - status
+        - result
+      properties:
+        status:
+          type: string
+          enum: [completed]
+        result:
+          type: object
+          description: Backend-defined result data
+          additionalProperties: true
+
+    AsyncResponse:
+      type: object
+      description: Async processing initiated
+      required:
+        - status
+        - requestId
+      properties:
+        status:
+          type: string
+          enum: [pending, processing]
+        requestId:
+          type: string
+          description: Unique identifier for polling status
+          example: "req_xyz789"
+        estimatedDuration:
+          type: integer
+          description: Estimated completion time in seconds
+        message:
+          type: string
+          description: Status message for user
+          example: "Tweet queued for LLM analysis"
+
+    PollingStatusResponse:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [processing, completed, failed]
+        progress:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Progress percentage (0.0 to 1.0)
+        message:
+          type: string
+          description: Current status message
+        result:
+          type: object
+          description: Final result (present when status = completed)
+          additionalProperties: true
+        error:
+          $ref: '#/components/schemas/Error'
+
+    ErrorResponse:
+      type: object
+      required:
+        - status
+        - error
+      properties:
+        status:
+          type: string
+          enum: [failed, error]
+        error:
+          $ref: '#/components/schemas/Error'
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+          example: "INVALID_TWEET_DATA"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Required field 'author.handle' is missing"
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication
+
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Bearer token for authentication
+
+security:
+  - ApiKeyAuth: []
+  - BearerAuth: []
+  - {} # No authentication required (optional)
