@@ -4,7 +4,7 @@
  */
 
 import type { PostResponse, PollableRequest } from '../types/config';
-import { getConfig } from './config-service';
+import { getConfig, getCustomHeaders } from './config-service';
 
 const STORAGE_KEY = 'tweetyoink_active_polls';
 const POLLING_URL_CACHE_KEY = 'tweetyoink_polling_urls';
@@ -87,14 +87,25 @@ export async function pollRequest(requestId: string): Promise<void> {
   }
 
   try {
+    // Get custom headers
+    const customHeaders = await getCustomHeaders();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add custom headers (same as initial POST request)
+    for (const header of customHeaders.headers) {
+      if (header.enabled) {
+        headers[header.key] = header.value;
+      }
+    }
+
     // Make polling request
     console.log(`[TweetYoink] Polling (attempt ${request.pollCount + 1}):`, pollingUrl);
 
     const response = await fetch(pollingUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({ requestId }),
       signal: AbortSignal.timeout(config.postTimeoutSeconds * 1000),
     });
