@@ -93,9 +93,6 @@ function extractVideos(tweetArticle: Element): MediaData[] {
       // Extract poster/thumbnail
       const posterUrl = videoElement.getAttribute('poster') || null;
 
-      // Extract type
-      const type = source?.getAttribute('type') || 'video/mp4';
-
       if (url) {
         videos.push({
           type: 'video',
