@@ -5,15 +5,7 @@
  */
 
 import { createYoinkIconElement } from './icons';
-
-/**
- * X/Twitter color scheme constants (from research.md)
- */
-const COLORS = {
-  DEFAULT_GRAY: 'rgb(113, 118, 123)',
-  HOVER_BLUE: 'rgb(29, 155, 240)',
-  HOVER_BG: 'rgba(29, 155, 240, 0.1)',
-};
+import { COLORS, ERROR_DISPLAY_DURATION_MS } from './constants';
 
 /**
  * Creates a Yoink button element matching X/Twitter's action button styling
@@ -108,8 +100,8 @@ export function enableButton(button: HTMLButtonElement): void {
  * @param button - The Yoink button element
  */
 export function showButtonError(button: HTMLButtonElement): void {
-  button.style.color = 'rgb(249, 24, 128)'; // X/Twitter error red
+  button.style.color = COLORS.ERROR_RED;
   setTimeout(() => {
     button.style.color = COLORS.DEFAULT_GRAY;
-  }, 2000); // Reset after 2 seconds
+  }, ERROR_DISPLAY_DURATION_MS);
 }

@@ -12,18 +12,13 @@
  */
 
 import { createYoinkButton } from './yoink-button';
+import { MUTATION_OBSERVER_THROTTLE_MS } from './constants';
 
 /**
  * Tracks processed tweet elements to prevent duplicate button injection
  * WeakSet allows automatic garbage collection when tweets are removed from DOM
  */
 const processedTweets = new WeakSet<Element>();
-
-/**
- * Throttle delay for MutationObserver callback (ms)
- * Based on research.md recommendation: 200ms
- */
-const THROTTLE_DELAY = 200;
 
 /**
  * Throttle state
@@ -56,7 +51,7 @@ export function initializeButtonInjector(
       processPendingMutations(onYoinkClick);
       pendingMutations = [];
       throttleTimeout = null;
-    }, THROTTLE_DELAY);
+    }, MUTATION_OBSERVER_THROTTLE_MS);
   });
 
   // Observe the main timeline container

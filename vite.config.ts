@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => ({
     emptyOutDir: true,
     // Generate source maps for better debugging in development mode
     // Use external source maps (.map files) to keep bundle size down
-    sourcemap: mode === 'development' ? true : false,
+    sourcemap: mode === 'development',
     // Reduce minification in development for more readable errors
     minify: mode === 'development' ? false : 'esbuild',
     // Keep chunk names readable in development

@@ -73,9 +73,7 @@ export const authorHandleSelector: SelectorConfig = {
     extractor: (el) => {
       // Look for @username pattern in any text node
       const allText = el.textContent || '';
-      console.log('[TweetYoink] Tertiary handle extractor - allText:', allText);
       const match = allText.match(/@([A-Za-z0-9_]{1,15})/);
-      console.log('[TweetYoink] Tertiary handle extractor - match:', match);
       return match ? match[1] : null;
     },
     validator: (value) => /^[A-Za-z0-9_]{1,15}$/.test(value),

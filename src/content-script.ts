@@ -8,6 +8,7 @@ import { initializeButtonInjector } from './ui/button-injector';
 import { disableButton, enableButton, showButtonError } from './ui/yoink-button';
 import { extractTweetData } from './extractors/tweet-extractor';
 import { isExtractionSuccess } from './types/tweet-data';
+import { ERROR_DISPLAY_DURATION_MS } from './ui/constants';
 
 // Check if we're on Twitter or X domain
 const currentDomain = window.location.hostname;
@@ -65,11 +66,11 @@ function handleYoinkClick(tweetElement: Element, button: HTMLButtonElement): voi
       showButtonError(button);
 
       // Re-enable button after error state
-      setTimeout(() => enableButton(button), 2000);
+      setTimeout(() => enableButton(button), ERROR_DISPLAY_DURATION_MS);
     }
   } catch (error) {
     console.error('[TweetYoink] Unexpected error:', error);
     showButtonError(button);
-    setTimeout(() => enableButton(button), 2000);
+    setTimeout(() => enableButton(button), ERROR_DISPLAY_DURATION_MS);
   }
 }
