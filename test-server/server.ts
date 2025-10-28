@@ -10,6 +10,7 @@
 import { createServer, IncomingMessage, ServerResponse } from 'http';
 
 const PORT = process.env.PORT || 3000;
+const ASYNC_COMPLETION_TIME_MS = 30000; // 30 seconds (matches async-server.ts)
 const MODE = process.argv.includes('--async') ? 'async' : 'sync';
 
 // Store for simulated async requests

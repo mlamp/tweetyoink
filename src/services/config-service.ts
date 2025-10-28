@@ -5,7 +5,7 @@
  */
 
 import type { ExtensionConfig, CustomHeaders } from '../types/config';
-import { DEFAULT_CONFIG } from '../types/config';
+import { DEFAULT_CONFIG, MIN_POLLING_INTERVAL_SECONDS } from '../types/config';
 
 const CONFIG_KEY = 'tweetyoink-config';
 const HEADERS_KEY = 'tweetyoink-custom-headers';
@@ -68,8 +68,8 @@ export function validateConfig(config: ExtensionConfig): string[] {
     }
   }
 
-  if (config.pollingIntervalSeconds < 2) {
-    errors.push('Polling interval must be at least 2 seconds');
+  if (config.pollingIntervalSeconds < MIN_POLLING_INTERVAL_SECONDS) {
+    errors.push(`Polling interval must be at least ${MIN_POLLING_INTERVAL_SECONDS} seconds`);
   }
 
   if (config.pollingMaxDurationSeconds < 60) {

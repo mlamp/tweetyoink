@@ -14,6 +14,7 @@
 import { createServer, IncomingMessage, ServerResponse } from 'http';
 
 const PORT = process.env.PORT || 3000;
+const ASYNC_COMPLETION_TIME_MS = 30000; // 30 seconds
 
 interface AsyncRequest {
   requestId: string;
@@ -85,16 +86,16 @@ async function handleTweetsPost(req: IncomingMessage, res: ServerResponse) {
     const requestId = generateRequestId();
     const now = Date.now();
 
-    // Store request with 30-second completion time
+    // Store request with completion time
     asyncRequests.set(requestId, {
       requestId,
       tweetData,
       createdAt: now,
-      completedAt: now + 30000, // Complete after 30 seconds
+      completedAt: now + ASYNC_COMPLETION_TIME_MS,
     });
 
     console.log(`🔄 Created async request: ${requestId}`);
-    console.log(`⏱️  Will complete at: ${new Date(now + 30000).toISOString()}`);
+    console.log(`⏱️  Will complete at: ${new Date(now + ASYNC_COMPLETION_TIME_MS).toISOString()}`);
     console.log(`📊 Active requests: ${asyncRequests.size}\n`);
 
     // Clean up old requests (older than 5 minutes)
@@ -110,7 +111,7 @@ async function handleTweetsPost(req: IncomingMessage, res: ServerResponse) {
     sendJson(res, 200, {
       status: 'pending',
       requestId,
-      estimatedDuration: 30,
+      estimatedDuration: ASYNC_COMPLETION_TIME_MS / 1000, // Convert ms to seconds
     });
   } catch (error) {
     console.error('❌ Error processing request:', error);

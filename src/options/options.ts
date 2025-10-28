@@ -5,6 +5,7 @@
 
 import { getConfig, saveConfig, getCustomHeaders, saveCustomHeaders } from '../services/config-service';
 import type { HeaderEntry } from '../types/config';
+import { SUCCESS_MESSAGE_DISPLAY_DURATION_MS } from '../types/config';
 
 // Load saved configuration
 async function loadOptions() {
@@ -145,7 +146,7 @@ function showStatus(message: string, type: 'success' | 'error') {
     setTimeout(() => {
       statusEl.className = 'status-message';
       statusEl.textContent = '';
-    }, 5000);
+    }, SUCCESS_MESSAGE_DISPLAY_DURATION_MS);
   }
   // Errors stay visible until next action
 }

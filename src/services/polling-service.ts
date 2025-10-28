@@ -4,6 +4,7 @@
  */
 
 import type { PostResponse, PollableRequest } from '../types/config';
+import { mapPollingStatusToRequestStatus } from '../types/config';
 import { getConfig, getCustomHeaders } from './config-service';
 
 const STORAGE_KEY = 'tweetyoink_active_polls';
@@ -139,8 +140,9 @@ export async function pollRequest(requestId: string): Promise<void> {
 
     if (data.status === 'pending' || data.status === 'processing') {
       console.log(`[TweetYoink] Request still ${data.status}...`);
-      // Map 'processing' to 'polling' for our RequestStatus type
-      await updatePollStatus(requestId, data.status === 'processing' ? 'polling' : 'pending');
+      // Map server status to client status using centralized function
+      const clientStatus = mapPollingStatusToRequestStatus(data.status);
+      await updatePollStatus(requestId, clientStatus);
       await scheduleNextPoll(requestId, request.pollCount + 1);
       return;
     }

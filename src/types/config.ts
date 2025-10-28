@@ -3,6 +3,10 @@
  * Feature: 003-config-endpoint
  */
 
+// Configuration constants
+export const MIN_POLLING_INTERVAL_SECONDS = 2;
+export const SUCCESS_MESSAGE_DISPLAY_DURATION_MS = 5000;
+
 export interface ExtensionConfig {
   endpointUrl: string;
   pollingIntervalSeconds: number;
@@ -99,7 +103,19 @@ export function isErrorResponse(
 }
 
 // Polling status response
-export type PollingStatus = 'processing' | 'completed' | 'failed';
+export type PollingStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
+/**
+ * Map server polling status to client request status
+ * Server uses 'processing', but client tracks as 'polling'
+ */
+export function mapPollingStatusToRequestStatus(pollingStatus: PollingStatus): RequestStatus {
+  if (pollingStatus === 'processing') {
+    return 'polling';
+  }
+  // 'completed', 'failed', and 'pending' map directly
+  return pollingStatus as RequestStatus;
+}
 
 export interface PollingStatusResponse {
   status: PollingStatus;
