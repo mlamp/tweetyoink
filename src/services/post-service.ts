@@ -30,6 +30,13 @@ export class NetworkError extends Error {
   }
 }
 
+export class ConfigError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ConfigError';
+  }
+}
+
 /**
  * Post tweet data to configured endpoint via service worker
  * Content scripts cannot access chrome.permissions, so we delegate to service worker
@@ -56,13 +63,16 @@ export async function postTweetData(tweetData: TweetData): Promise<PostResponse>
         throw new TimeoutError(response.error);
       } else if (response.errorType === 'NetworkError') {
         throw new NetworkError(response.error);
+      } else if (response.errorType === 'ConfigError') {
+        throw new ConfigError(response.error);
       } else {
         throw new Error(response.error);
       }
     }
   } catch (error: any) {
     // If the error is already one of our custom types, re-throw it
-    if (error instanceof HttpError || error instanceof TimeoutError || error instanceof NetworkError) {
+    if (error instanceof HttpError || error instanceof TimeoutError ||
+        error instanceof NetworkError || error instanceof ConfigError) {
       throw error;
     }
 

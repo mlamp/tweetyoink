@@ -9,7 +9,7 @@ import { disableButton, enableButton, showButtonError } from './ui/yoink-button'
 import { extractTweetData } from './extractors/tweet-extractor';
 import { isExtractionSuccess } from './types/tweet-data';
 import { ERROR_DISPLAY_DURATION_MS } from './ui/constants';
-import { postTweetData, HttpError, TimeoutError, NetworkError } from './services/post-service';
+import { postTweetData, HttpError, TimeoutError, NetworkError, ConfigError } from './services/post-service';
 import { isAsyncResponse } from './types/config';
 
 // Check if we're on Twitter or X domain
@@ -103,17 +103,17 @@ async function handleYoinkClick(tweetElement: Element, button: HTMLButtonElement
       enableButton(button);
 
     } catch (error) {
-      if (error instanceof HttpError) {
+      if (error instanceof ConfigError) {
+        // No endpoint configured - just log locally (this is valid behavior)
+        console.log('[TweetYoink] No endpoint configured - tweet data logged to console only');
+        enableButton(button);
+        return;
+      } else if (error instanceof HttpError) {
         console.error(`[TweetYoink] HTTP error: ${error.message}`);
       } else if (error instanceof TimeoutError) {
         console.error(`[TweetYoink] Request timeout: ${error.message}`);
       } else if (error instanceof NetworkError) {
         console.error(`[TweetYoink] Network error: ${error.message}`);
-      } else if (error instanceof Error && error.message === 'No endpoint URL configured') {
-        // No endpoint configured - just log locally (this is valid behavior)
-        console.log('[TweetYoink] No endpoint configured - tweet data logged to console only');
-        enableButton(button);
-        return;
       } else {
         console.error('[TweetYoink] POST error:', error);
       }
