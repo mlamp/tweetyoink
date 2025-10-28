@@ -1,13 +1,21 @@
 {
   "manifest_version": 3,
   "name": "TweetYoink",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Capture tweets from Twitter/X for LLM analysis",
-  "permissions": ["storage", "activeTab"],
+  "permissions": ["storage", "activeTab", "alarms"],
   "host_permissions": [
     "https://twitter.com/*",
     "https://x.com/*"
   ],
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": false
+  },
   "background": {
     "service_worker": "src/service-worker.ts",
     "type": "module"
