@@ -99,13 +99,13 @@ async function handleTweetsPost(req: IncomingMessage, res: ServerResponse) {
           },
         });
         console.log(`✅ Request ${requestId} COMPLETED`);
-      }, 8000);
+      }, ASYNC_COMPLETION_TIME_MS);
 
       // Return async response
       sendJson(res, 200, {
         status: 'pending',
         requestId,
-        estimatedDuration: 8,
+        estimatedDuration: ASYNC_COMPLETION_TIME_MS / 1000, // Convert ms to seconds
       });
     } else {
       // Synchronous response

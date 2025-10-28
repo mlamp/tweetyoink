@@ -163,8 +163,11 @@ export async function pollRequest(requestId: string): Promise<void> {
 
 /**
  * Build polling URL from endpoint URL
- * If endpoint is http://localhost:3000/ -> polling is http://localhost:3000/status
- * If endpoint is http://localhost:3000/some/path -> polling is http://localhost:3000/some/path/status
+ * Polling uses POST /status with requestId in body (not GET with path parameter)
+ *
+ * Examples:
+ * - http://localhost:3000/ -> POST http://localhost:3000/status
+ * - http://localhost:3000/some/path -> POST http://localhost:3000/some/path/status
  */
 function buildPollingUrl(baseUrl: string): string {
   // Remove trailing slash from base URL
@@ -183,7 +186,9 @@ async function scheduleNextPoll(requestId: string, pollCount: number): Promise<v
 
   // Progressive backoff: start at config interval, increase by 1.5x each time, max 60s
   const baseInterval = config.pollingIntervalSeconds;
-  const backoffMultiplier = Math.pow(1.5, Math.min(pollCount, 5)); // Cap at 5x backoff
+  // Cap at 5x backoff: with default 5s interval, reaches ~38s before hitting 60s max
+  // This prevents excessive backoff while still reducing server load on long-running requests
+  const backoffMultiplier = Math.pow(1.5, Math.min(pollCount, 5));
   const intervalSeconds = Math.min(baseInterval * backoffMultiplier, 60);
   const intervalMs = intervalSeconds * 1000;
 
