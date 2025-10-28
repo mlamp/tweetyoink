@@ -14,7 +14,6 @@ async function loadOptions() {
   (document.getElementById('post-timeout') as HTMLInputElement).value = config.postTimeoutSeconds.toString();
   (document.getElementById('enable-polling') as HTMLInputElement).checked = config.enablePolling;
   (document.getElementById('polling-interval') as HTMLInputElement).value = config.pollingIntervalSeconds.toString();
-  (document.getElementById('polling-pattern') as HTMLInputElement).value = config.pollingEndpointPattern;
 
   // Load custom headers
   await loadCustomHeaders();
@@ -28,7 +27,6 @@ async function handleSave() {
   const postTimeoutSeconds = parseInt((document.getElementById('post-timeout') as HTMLInputElement).value);
   const enablePolling = (document.getElementById('enable-polling') as HTMLInputElement).checked;
   const pollingIntervalSeconds = parseInt((document.getElementById('polling-interval') as HTMLInputElement).value);
-  const pollingEndpointPattern = (document.getElementById('polling-pattern') as HTMLInputElement).value.trim();
 
   try {
     // Save config
@@ -37,7 +35,6 @@ async function handleSave() {
       postTimeoutSeconds,
       enablePolling,
       pollingIntervalSeconds,
-      pollingEndpointPattern,
     });
 
     // Save custom headers
