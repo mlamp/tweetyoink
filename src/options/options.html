@@ -68,17 +68,7 @@
           max="60"
           value="5"
         >
-      </div>
-
-      <div class="form-group">
-        <label for="polling-pattern">Status Endpoint Pattern</label>
-        <input
-          type="text"
-          id="polling-pattern"
-          value="/status/{requestId}"
-          placeholder="/status/{requestId}"
-        >
-        <small>Use {requestId} as placeholder for the request ID</small>
+        <small>Status endpoint is automatically constructed as {endpoint}/status</small>
       </div>
     </section>
 

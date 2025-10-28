@@ -14,12 +14,15 @@ servers:
     description: Example backend server (user-configured)
 
 paths:
-  /tweets:
+  /:
     post:
       summary: Receive captured tweet data
       description: |
         POST endpoint where TweetYoink sends captured tweet data.
         Backend can respond immediately (synchronous) or return a request ID for async processing.
+
+        Note: The endpoint URL is user-configured. This path represents the base endpoint.
+        Example: If user configures http://localhost:3000/api/tweets, POST goes to that URL.
 
       operationId: receiveTweetData
       tags:
@@ -178,25 +181,33 @@ paths:
                   code: "INTERNAL_ERROR"
                   message: "Database connection failed"
 
-  /status/{requestId}:
-    get:
+  /status:
+    post:
       summary: Poll async request status
       description: |
         Check the status of an async tweet processing request.
         Extension polls this endpoint until status becomes 'completed' or 'failed'.
 
+        Note: The status endpoint is automatically constructed by appending /status to the base endpoint URL.
+        Example: If base endpoint is http://localhost:3000/api, status endpoint is http://localhost:3000/api/status
+
       operationId: pollRequestStatus
       tags:
         - Async Processing
 
-      parameters:
-        - name: requestId
-          in: path
-          required: true
-          description: Request ID returned from POST /tweets
-          schema:
-            type: string
-          example: "req_xyz789"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - requestId
+              properties:
+                requestId:
+                  type: string
+                  description: Request ID returned from POST / response
+                  example: "req_xyz789"
 
       responses:
         '200':
