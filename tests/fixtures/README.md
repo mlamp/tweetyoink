@@ -70,6 +70,147 @@ The fixture contains a complete tweet article with:
 4. **Regression Testing**: Detect when X/Twitter changes DOM structure
 5. **CI/CD**: Automated testing without requiring live X/Twitter access
 
+### `x-tweet-quote.html`
+
+Anonymized X/Twitter quote tweet HTML for testing quote tweet extraction logic.
+
+**Source**: Captured from X/Twitter using `outerHTML` on a quote tweet element
+**Anonymization**: Personal information removed (usernames replaced with TestQuoter and OriginalAuthor, profile images replaced with placeholders)
+**Tweet Type**: Quote tweet (user quoting another user's tweet)
+
+**Tweet Structure**:
+
+The fixture contains a complete quote tweet with:
+- **Outer tweet** (the quote):
+  - User: "Test Quoter" (@TestQuoter)
+  - Verified badge
+  - Quote text: "This is a quote tweet with additional commentary"
+  - Timestamp: Oct 28, 2025 at 11:13 AM
+  - Metrics: 2.5K replies, 4.4K reposts, 25K likes, 2.5M views
+
+- **Inner tweet** (the quoted original):
+  - User: "Original Author" (@OriginalAuthor)
+  - Verified badge
+  - Original text: "This is the original quoted tweet content that provides important context and information for the conversation"
+  - Media: Image attachment
+  - Timestamp: Oct 28, 2025 at 11:10 AM
+
+**Key Features for Testing**:
+
+1. **Nested structure**: Tests ability to extract both quote and quoted tweet
+2. **Multiple authors**: Tests distinguishing between quoter and original author
+3. **Media in quoted tweet**: Tests media extraction from nested content
+4. **Full metrics**: Tests extraction of all engagement metrics
+5. **Quote indicator**: Contains visual "Quote" label to identify quote type
+
+**Expected Extraction Pattern**:
+
+```typescript
+{
+  "text": "This is a quote tweet with additional commentary",
+  "author": {
+    "handle": "TestQuoter",
+    "displayName": "Test Quoter",
+    "isVerified": true
+  },
+  "tweetType": {
+    "isQuote": true,
+    "isRetweet": false,
+    "isReply": false
+  },
+  "parent": {
+    "text": "This is the original quoted tweet content...",
+    "author": {
+      "handle": "OriginalAuthor",
+      "displayName": "Original Author",
+      "isVerified": true
+    },
+    "media": [{ "type": "image", "url": "..." }]
+  }
+}
+```
+
+**Use Cases**:
+
+1. **Quote Tweet Detection**: Test `isQuote` flag extraction
+2. **Nested Tweet Extraction**: Validate parent tweet data capture
+3. **Author Disambiguation**: Ensure correct author attribution for both tweets
+4. **Media in Quotes**: Test media extraction from quoted content
+5. **Quote Structure**: Validate nested TweetData in `parent` field
+
+### `x-tweet-quote-video.html`
+
+Anonymized X/Twitter quote tweet HTML with video content for testing quote tweet extraction with media.
+
+**Source**: Captured from X/Twitter using `outerHTML` on a quote tweet element containing video
+**Anonymization**: Personal information removed (usernames replaced with QuotingUser and OriginalPoster, profile images and video URLs replaced with placeholders)
+**Tweet Type**: Quote tweet with video in quoted tweet
+
+**Tweet Structure**:
+
+The fixture contains a complete quote tweet with video:
+- **Outer tweet** (the quote):
+  - User: "Quoting User" (@QuotingUser)
+  - Verified badge
+  - Quote text: "How to share Example.com links"
+  - Timestamp: Oct 28, 2025 at 11:08 AM
+  - Metrics: 972 replies, 2.3K reposts, 11K likes, 2.1M views
+
+- **Inner tweet** (the quoted original with video):
+  - User: "Original Poster" (@OriginalPoster)
+  - Verified badge
+  - Original text: "How to share Example.com links? Tap any heading, hit the link icon, and your link is copied instantly."
+  - Media: Video attachment (data-testid="videoPlayer" and data-testid="tweetPhoto")
+  - Video poster image: placeholder video poster
+  - Timestamp: Oct 28, 2025 at 7:15 AM
+
+**Key Features for Testing**:
+
+1. **Video in quoted tweet**: Tests video media extraction from nested content
+2. **Video-specific selectors**: Tests `data-testid="videoPlayer"` and `data-testid="videoComponent"`
+3. **Video poster extraction**: Tests extraction of video thumbnail/poster image
+4. **Quote with media**: Validates quote tweet structure when original has video
+5. **Full nested structure**: Both outer and inner tweets with all metadata
+
+**Expected Extraction Pattern**:
+
+```typescript
+{
+  "text": "How to share Example.com links",
+  "author": {
+    "handle": "QuotingUser",
+    "displayName": "Quoting User",
+    "isVerified": true
+  },
+  "tweetType": {
+    "isQuote": true,
+    "isRetweet": false,
+    "isReply": false
+  },
+  "parent": {
+    "text": "How to share Example.com links? Tap any heading...",
+    "author": {
+      "handle": "OriginalPoster",
+      "displayName": "Original Poster",
+      "isVerified": true
+    },
+    "media": [{
+      "type": "video",
+      "url": "blob:https://x.com/placeholder-video-blob",
+      "posterUrl": "https://pbs.twimg.com/amplify_video_thumb/placeholder/video_poster.jpg"
+    }]
+  }
+}
+```
+
+**Use Cases**:
+
+1. **Video Detection**: Test video media type detection in quoted tweets
+2. **Video Metadata Extraction**: Validate extraction of video URL and poster
+3. **Quote with Video**: Test nested extraction when original tweet has video
+4. **Media Array Population**: Ensure media array includes video objects correctly
+5. **Video Selectors**: Validate `videoPlayer` and `videoComponent` testid selectors
+
 ## Adding New Fixtures
 
 When adding new test fixtures:
