@@ -9,6 +9,8 @@ TweetYoink is a Chrome extension that captures tweet data from Twitter/X and sen
 ## Active Technologies
 - TypeScript 5.x with strict mode enabled + Vite 5.x, @crxjs/vite-plugin (Chrome extension Vite plugin), @types/chrome (TypeScript definitions for Chrome APIs), Vitest (unit testing), Playwright (E2E testing), sharp or jimp (icon generation) (001-initial-setup)
 - Chrome Storage API (for extension settings), no external database (001-initial-setup)
+- TypeScript 5.x with strict mode enabled + Vite 5.x, @crxjs/vite-plugin for Chrome extension bundling (002-post-view-yoink)
+- Chrome Extension Storage API (for future settings), currently N/A for console-only MVP (002-post-view-yoink)
 
 - **Language**: TypeScript 5.x with strict mode enabled
 - **Build Tool**: Vite 5.x with @crxjs/vite-plugin (Chrome extension support)
@@ -45,11 +47,17 @@ tweetyoink/
 # Install dependencies
 npm install
 
-# Build for production
+# Build for production (minified, no source maps)
 npm run build
 
-# Development mode with watch (auto-rebuild on changes)
+# Build for development (unminified, with source maps)
+npm run build:dev
+
+# Development mode with watch (auto-rebuild on changes, production mode)
 npm run watch
+
+# Development mode with watch (auto-rebuild on changes, development mode with source maps)
+npm run watch:dev
 
 # Type checking
 npm run type-check
@@ -57,6 +65,20 @@ npm run type-check
 # Development server with HMR
 npm run dev
 ```
+
+### Development vs Production Builds
+
+**Development Mode** (`npm run build:dev` or `npm run watch:dev`):
+- **Source maps enabled**: Errors show original TypeScript file and line numbers
+- **No minification**: Code is readable for debugging
+- **Readable chunk names**: Files keep their original names (no hashes)
+- Use this for testing in Chrome Developer Mode
+
+**Production Mode** (`npm run build` or `npm run watch`):
+- **No source maps**: Smaller bundle size
+- **Full minification**: Optimized for performance
+- **Hashed chunk names**: For cache busting
+- Use this for publishing to Chrome Web Store
 
 ## Code Style & Conventions
 
@@ -92,20 +114,36 @@ npm run dev
 ## Extension Development Notes
 
 ### Loading Extension in Chrome
-1. Run `npm run build` to create dist/ folder
+
+**For Development** (with source maps for better debugging):
+1. Run `npm run build:dev` to create dist/ folder
 2. Open `chrome://extensions` in Chrome
 3. Enable "Developer mode" (top right toggle)
 4. Click "Load unpacked"
 5. Select the `dist/` folder
 
+**For Production Testing** (optimized build):
+1. Run `npm run build` to create dist/ folder
+2. Follow steps 2-5 above
+
 ### Development Workflow
-1. Run `npm run watch` in terminal (auto-rebuild on changes)
+
+**Recommended for active development** (with source maps):
+1. Run `npm run watch:dev` in terminal (auto-rebuild on changes with source maps)
 2. Make code changes in `src/`
 3. Reload extension in `chrome://extensions` (click ↻ button)
 4. Refresh Twitter/X page if testing content script
 5. Total iteration time should be <30 seconds
 
+**Alternative** (production mode, faster builds):
+1. Run `npm run watch` in terminal (auto-rebuild on changes, no source maps)
+2. Follow steps 2-5 above
+
 ### Debugging
+
+**Source Maps**: When building with `--mode development`, errors will show original TypeScript file paths and line numbers instead of cryptic packed vendor.js references. This makes debugging significantly easier in Chrome DevTools.
+
+**DevTools Access**:
 - **Service Worker**: Click "service worker" link in chrome://extensions
 - **Content Script**: Open page DevTools (F12) on Twitter/X
 - **Popup**: Right-click popup → Inspect
@@ -116,9 +154,9 @@ All components log with prefixes:
 - `[TweetYoink Popup]`
 
 ## Recent Changes
+- 002-post-view-yoink: Added TypeScript 5.x with strict mode enabled + Vite 5.x, @crxjs/vite-plugin for Chrome extension bundling
 - 001-initial-setup: Added TypeScript 5.x with strict mode enabled + Vite 5.x, @crxjs/vite-plugin (Chrome extension Vite plugin), @types/chrome (TypeScript definitions for Chrome APIs), Vitest (unit testing), Playwright (E2E testing), sharp or jimp (icon generation)
 - 001-initial-setup: Added TypeScript 5.x with strict mode enabled + Vite 5.x, @crxjs/vite-plugin (Chrome extension Vite plugin), @types/chrome (TypeScript definitions for Chrome APIs), Vitest (unit testing), Playwright (E2E testing), sharp or jimp (icon generation)
-- 001-initial-setup: Initial project setup with TypeScript, Vite, and Manifest V3
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
