@@ -19,9 +19,9 @@
 
 **Purpose**: Define TypeScript interfaces for debug data structures
 
-- [ ] T001 [P] Add DebugContentItem interface extending ResponseContentItem in src/types/overlay.ts
-- [ ] T002 [P] Add DebugData interface with optional fields (orchestrator_decisions, agent_analyses, execution_metrics, request_metadata) in src/types/overlay.ts
-- [ ] T003 [P] Add supporting interfaces (OrchestratorDecisions, AgentAnalysis, ExecutionMetric, RequestMetadata) in src/types/overlay.ts
+- [X] T001 [P] Add DebugContentItem interface extending ResponseContentItem in src/types/overlay.ts
+- [X] T002 [P] Add DebugData interface with optional fields (orchestrator_decisions, agent_analyses, execution_metrics, request_metadata) in src/types/overlay.ts
+- [X] T003 [P] Add supporting interfaces (OrchestratorDecisions, AgentAnalysis, ExecutionMetric, RequestMetadata) in src/types/overlay.ts
 
 ---
 
@@ -33,16 +33,16 @@
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Modify ParsedResponse interface to add optional debugItems array in src/services/response-handler.ts
-- [ ] T005 [US1] Add environment detection using import.meta.env.DEV in src/services/response-handler.ts
-- [ ] T006 [US1] Add debug block filtering logic in parseServerResponse function (separate debug blocks from regular content using metadata.is_debug check) in src/services/response-handler.ts
-- [ ] T007 [US1] Implement parseDebugContent helper function with JSON.parse and try-catch error handling in src/ui/overlay-renderer.ts
-- [ ] T008 [US1] Implement renderDebugError function for malformed JSON fallback in src/ui/overlay-renderer.ts
-- [ ] T009 [US1] Implement renderDebugBlock function that parses JSON content and creates debug container in src/ui/overlay-renderer.ts
-- [ ] T010 [US1] Add debug block rendering to renderOverlay function after regular content items in src/ui/overlay-renderer.ts
-- [ ] T011 [P] [US1] Add base debug block styles (.debug-block, .debug-title) in src/ui/overlay.css
-- [ ] T012 [P] [US1] Add debug content formatting styles (.debug-content with monospace font) in src/ui/overlay.css
-- [ ] T013 [P] [US1] Add debug error state styles (.debug-error, .error-message, .debug-raw-content) in src/ui/overlay.css
+- [X] T004 [US1] Modify ParsedResponse interface to add optional debugItems array in src/services/response-handler.ts
+- [X] T005 [US1] Add environment detection using import.meta.env.DEV in src/services/response-handler.ts
+- [X] T006 [US1] Add debug block filtering logic in parseServerResponse function (separate debug blocks from regular content using metadata.is_debug check) in src/services/response-handler.ts
+- [X] T007 [US1] Implement parseDebugContent helper function with JSON.parse and try-catch error handling in src/ui/overlay-renderer.ts
+- [X] T008 [US1] Implement renderDebugError function for malformed JSON fallback in src/ui/overlay-renderer.ts
+- [X] T009 [US1] Implement renderDebugBlock function that parses JSON content and creates debug container in src/ui/overlay-renderer.ts
+- [X] T010 [US1] Add debug block rendering to renderOverlay function after regular content items in src/ui/overlay-renderer.ts
+- [X] T011 [P] [US1] Add base debug block styles (.debug-block, .debug-title) in src/ui/overlay.css
+- [X] T012 [P] [US1] Add debug content formatting styles (.debug-content with monospace font) in src/ui/overlay.css
+- [X] T013 [P] [US1] Add debug error state styles (.debug-error, .error-message, .debug-raw-content) in src/ui/overlay.css
 
 **Checkpoint**: User Story 1 complete - Debug info visible in dev mode with formatted JSON at end of overlay
 

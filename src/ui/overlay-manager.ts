@@ -7,7 +7,7 @@ import { logger } from '../utils/logger';
  * Singleton manager for overlay lifecycle (show, hide, cleanup)
  */
 
-import type { ResponseContentItem, OverlayState } from '../types/overlay';
+import type { ResponseContentItem, DebugContentItem, OverlayState } from '../types/overlay';
 import { DEFAULT_OVERLAY_CONFIG } from '../types/overlay';
 import { renderOverlay, renderEmptyStateOverlay } from './overlay-renderer';
 
@@ -29,9 +29,17 @@ let overlayElements: {
  *
  * @param contentItems - Array of content items to display
  * @param associatedTweetId - Tweet ID that triggered this overlay
+ * @param debugItems - Optional debug blocks (Feature 005)
  */
-export function showOverlay(contentItems: ResponseContentItem[], associatedTweetId: string): void {
+export function showOverlay(
+  contentItems: ResponseContentItem[],
+  associatedTweetId: string,
+  debugItems?: DebugContentItem[]
+): void {
   logger.log('[OverlayManager] Showing overlay with', contentItems.length, 'items');
+  if (debugItems && debugItems.length > 0) {
+    logger.log('[OverlayManager] Including', debugItems.length, 'debug blocks');
+  }
 
   // Close existing overlay if present (singleton pattern)
   if (overlayState?.isVisible) {
@@ -47,8 +55,8 @@ export function showOverlay(contentItems: ResponseContentItem[], associatedTweet
     createdAt: Date.now(),
   };
 
-  // Render overlay to DOM
-  const elements = renderOverlay(contentItems, DEFAULT_OVERLAY_CONFIG);
+  // Render overlay to DOM (pass debug items to renderer)
+  const elements = renderOverlay(contentItems, DEFAULT_OVERLAY_CONFIG, debugItems);
   overlayElements = elements;
 
   // Attach event listeners for dismissal

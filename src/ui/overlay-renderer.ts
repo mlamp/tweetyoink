@@ -7,7 +7,12 @@ import { logger } from '../utils/logger';
  * Handles DOM creation and rendering for overlay display
  */
 
-import type { ResponseContentItem, OverlayConfig } from '../types/overlay';
+import type {
+  ResponseContentItem,
+  OverlayConfig,
+  DebugContentItem,
+  DebugData,
+} from '../types/overlay';
 
 /**
  * Escape HTML characters to prevent XSS injection
@@ -25,11 +30,13 @@ function escapeHtml(text: string): string {
  *
  * @param contentItems - Array of content items to render
  * @param config - Overlay configuration
+ * @param debugItems - Optional debug blocks (Feature 005)
  * @returns DOM element references for backdrop and container
  */
 export function renderOverlay(
   contentItems: ResponseContentItem[],
-  config: OverlayConfig
+  config: OverlayConfig,
+  debugItems?: DebugContentItem[]
 ): { backdrop: HTMLElement; container: HTMLElement } {
   logger.log('[OverlayRenderer] Rendering overlay with', contentItems.length, 'items');
 
@@ -51,6 +58,15 @@ export function renderOverlay(
     const itemElement = renderContentItem(item);
     contentArea.appendChild(itemElement);
   });
+
+  // Render debug blocks if present (Feature 005)
+  if (debugItems && debugItems.length > 0) {
+    logger.log('[OverlayRenderer] Rendering', debugItems.length, 'debug blocks');
+    debugItems.forEach((debugItem) => {
+      const debugElement = renderDebugBlock(debugItem);
+      contentArea.appendChild(debugElement);
+    });
+  }
 
   container.appendChild(contentArea);
 
@@ -277,4 +293,97 @@ export function loadOverlayStyles(): void {
 
   // For now, we rely on CSS being injected by the extension build process
   // If styles are missing at runtime, the overlay will still render but may lack styling
+}
+
+// ============================================================================
+// Debug Block Rendering (Feature: 005-debug-info-display)
+// ============================================================================
+
+/**
+ * Parse debug content JSON string
+ * Feature: 005-debug-info-display (T007)
+ *
+ * @param content - JSON string from debug block
+ * @returns Parsed DebugData or null if parsing fails
+ */
+function parseDebugContent(content: string): DebugData | null {
+  try {
+    const parsed = JSON.parse(content);
+
+    // Validate structure - must be an object
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      logger.warn('[OverlayRenderer] Debug content is not an object');
+      return null;
+    }
+
+    return parsed as DebugData;
+  } catch (error) {
+    logger.warn('[OverlayRenderer] Failed to parse debug JSON:', error);
+    return null;
+  }
+}
+
+/**
+ * Render error state for malformed debug JSON
+ * Feature: 005-debug-info-display (T008)
+ *
+ * @param rawContent - Raw JSON string that failed to parse
+ * @returns DOM element for debug error state
+ */
+function renderDebugError(rawContent: string): HTMLElement {
+  const container = document.createElement('div');
+  container.className = 'debug-block debug-error';
+
+  const title = document.createElement('h3');
+  title.className = 'debug-title';
+  title.textContent = 'Debug Information (Parse Error)';
+  container.appendChild(title);
+
+  const errorMsg = document.createElement('p');
+  errorMsg.className = 'error-message';
+  errorMsg.textContent = 'Failed to parse debug JSON. Raw content displayed below.';
+  container.appendChild(errorMsg);
+
+  const rawContentPre = document.createElement('pre');
+  rawContentPre.className = 'debug-raw-content';
+  rawContentPre.textContent = rawContent; // Safe (textContent, not innerHTML)
+  container.appendChild(rawContentPre);
+
+  return container;
+}
+
+/**
+ * Render a debug content block with formatted JSON
+ * Feature: 005-debug-info-display (T009)
+ *
+ * @param item - Debug content item (metadata.is_debug === true)
+ * @returns DOM element for debug block
+ */
+function renderDebugBlock(item: DebugContentItem): HTMLElement {
+  // Parse JSON content
+  const debugData = parseDebugContent(item.content);
+
+  // If parsing failed, show error state
+  if (!debugData) {
+    return renderDebugError(item.content);
+  }
+
+  // Create container
+  const container = document.createElement('div');
+  container.className = 'debug-block';
+
+  // Add title
+  const title = document.createElement('h3');
+  title.className = 'debug-title';
+  title.textContent = item.metadata.title || 'Debug Information';
+  container.appendChild(title);
+
+  // Render full JSON content (for User Story 1 - simple display)
+  // User Story 2 will add collapsible sections
+  const pre = document.createElement('pre');
+  pre.className = 'debug-content';
+  pre.textContent = JSON.stringify(debugData, null, 2); // Safe (textContent, not innerHTML)
+  container.appendChild(pre);
+
+  return container;
 }

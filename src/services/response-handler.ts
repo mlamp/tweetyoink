@@ -7,15 +7,18 @@ import { logger } from '../utils/logger';
  * Parses server responses and filters content items for overlay display
  */
 
-import type { ResponseContentItem } from '../types/overlay';
+import type { ResponseContentItem, DebugContentItem } from '../types/overlay';
 import type { PostResponse } from '../types/config';
 
 export interface ParsedResponse {
   /** Whether response has displayable content */
   hasContent: boolean;
 
-  /** Filtered content items (type="text" only) */
+  /** Filtered content items (type="text" only, excluding debug blocks) */
   contentItems: ResponseContentItem[];
+
+  /** Debug blocks (only in development mode) - Feature 005 */
+  debugItems?: DebugContentItem[];
 
   /** Reason for no content (if hasContent is false) */
   emptyReason?: 'empty-array' | 'no-text-items' | 'non-array-result' | 'error-response';
@@ -80,8 +83,34 @@ export function parseServerResponse(response: PostResponse): ParsedResponse {
 
       logger.debug(`[ResponseHandler] Validated ${validatedItems.length} items`);
 
-      // Filter for displayable items (type="text" and type="image")
-      const displayableItems = validatedItems.filter((item) => {
+      // Environment detection for debug blocks (Feature 005)
+      const isDevelopment = import.meta.env.DEV;
+
+      // Separate debug blocks from regular content (Feature 005)
+      const debugItems: DebugContentItem[] = [];
+      const regularItems: ResponseContentItem[] = [];
+
+      validatedItems.forEach((item) => {
+        // Check if item is a debug block
+        if (item.metadata?.is_debug === true) {
+          if (isDevelopment) {
+            logger.debug('[ResponseHandler] Found debug block in development mode');
+            debugItems.push(item as DebugContentItem);
+          } else {
+            logger.debug('[ResponseHandler] Skipping debug block in production mode');
+          }
+        } else {
+          // Regular content item
+          regularItems.push(item);
+        }
+      });
+
+      logger.debug(
+        `[ResponseHandler] Separated ${regularItems.length} regular items and ${debugItems.length} debug items`
+      );
+
+      // Filter for displayable items (type="text" and type="image") from regular items
+      const displayableItems = regularItems.filter((item) => {
         if (item.type === 'text' || item.type === 'image') {
           return true;
         } else {
@@ -94,9 +123,11 @@ export function parseServerResponse(response: PostResponse): ParsedResponse {
 
       // No displayable items after filtering
       if (displayableItems.length === 0) {
+        // Still return debug items if available (development mode only)
         return {
           hasContent: false,
           contentItems: [],
+          debugItems: debugItems.length > 0 ? debugItems : undefined,
           emptyReason: 'no-text-items',
         };
       }
@@ -105,6 +136,7 @@ export function parseServerResponse(response: PostResponse): ParsedResponse {
       return {
         hasContent: true,
         contentItems: displayableItems,
+        debugItems: debugItems.length > 0 ? debugItems : undefined,
       };
     } else {
       // Legacy format (non-array result)
