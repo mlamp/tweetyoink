@@ -63,6 +63,12 @@ function expandTruncatedText(tweetArticle: Element): void {
       showMoreButton.dispatchEvent(clickEvent);
 
       // Wait for the DOM to update - poll for changes with timeout
+      // NOTE: We use polling instead of MutationObserver for simplicity and reliability:
+      // - Polling guarantees we check conditions at the right time (after click events)
+      // - MutationObserver would add complexity (setup, teardown, filtering mutations)
+      // - This function runs rarely (only when "Show more" button exists)
+      // - Twitter's DOM updates happen quickly (usually <100ms)
+      // - The polling loop doesn't block (no busy-wait delays)
       const maxWaitMs = 2000; // Maximum 2 seconds wait
       const startTime = performance.now();
       let lastTextLength = initialTextLength;

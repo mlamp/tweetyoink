@@ -251,19 +251,30 @@ function renderContentItem(item: ResponseContentItem): HTMLElement {
 
 /**
  * Load overlay CSS if not already loaded
- * This function ensures the CSS is injected into the page
+ *
+ * NOTE: This is a stub function for future CSS injection capability.
+ * Currently, overlay styles are injected via manifest.json content_scripts configuration,
+ * which is the recommended approach for Chrome extensions.
+ *
+ * This function serves as:
+ * 1. A detection mechanism to verify CSS is loaded
+ * 2. A hook point for future runtime CSS injection if needed
+ * 3. Documentation of the CSS loading strategy
+ *
+ * Future enhancement: If runtime injection is needed (e.g., for dynamic themes),
+ * this function can fetch and inject CSS using chrome.runtime.getURL() and document.createElement('style')
  */
 export function loadOverlayStyles(): void {
-  // Check if styles are already loaded
+  // Check if styles are already loaded (via link tag or inline style tag)
   if (document.querySelector('link[href*="overlay.css"]') || document.querySelector('style[data-overlay-styles]')) {
     logger.log('[OverlayRenderer] Overlay styles already loaded');
     return;
   }
 
   // In a Chrome extension, CSS files are typically injected via manifest.json content_scripts
-  // This function is here as a fallback for manual injection if needed
+  // This is the current implementation approach (see manifest.json)
   logger.log('[OverlayRenderer] Overlay styles should be loaded via manifest.json');
 
   // For now, we rely on CSS being injected by the extension build process
-  // If we need runtime injection, we can fetch and inject the CSS here
+  // If styles are missing at runtime, the overlay will still render but may lack styling
 }

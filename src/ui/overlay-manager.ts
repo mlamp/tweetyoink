@@ -143,22 +143,29 @@ function attachEventListeners(): void {
     return;
   }
 
-  // ESC key dismissal (capture phase)
-  document.addEventListener('keydown', handleEscapeKey, true);
+  try {
+    // ESC key dismissal (capture phase)
+    document.addEventListener('keydown', handleEscapeKey, true);
 
-  // Click outside dismissal (on backdrop)
-  overlayElements.backdrop.addEventListener('click', handleBackdropClick, true);
+    // Click outside dismissal (on backdrop)
+    overlayElements.backdrop.addEventListener('click', handleBackdropClick, true);
 
-  // Close button dismissal (will be attached by renderer)
-  const closeButton = overlayElements.container.querySelector('.tweetyoink-overlay-close');
-  if (closeButton) {
-    closeButton.addEventListener('click', handleCloseButtonClick as EventListener, true);
+    // Close button dismissal (will be attached by renderer)
+    const closeButton = overlayElements.container.querySelector('.tweetyoink-overlay-close');
+    if (closeButton) {
+      closeButton.addEventListener('click', handleCloseButtonClick as EventListener, true);
+    } else {
+      logger.warn('[OverlayManager] Close button not found - overlay may not be dismissable via button');
+    }
+
+    // Navigation cleanup listener
+    window.addEventListener('popstate', handleNavigation, true);
+
+    logger.log('[OverlayManager] Event listeners attached');
+  } catch (error) {
+    logger.error('[OverlayManager] Failed to attach event listeners:', error);
+    // Overlay remains functional even if some listeners fail (ESC and backdrop should work)
   }
-
-  // Navigation cleanup listener
-  window.addEventListener('popstate', handleNavigation, true);
-
-  logger.log('[OverlayManager] Event listeners attached');
 }
 
 /**
