@@ -353,8 +353,32 @@ function renderDebugError(rawContent: string): HTMLElement {
 }
 
 /**
- * Render a debug content block with formatted JSON
- * Feature: 005-debug-info-display (T009)
+ * Render a collapsible debug section using native <details>/<summary> elements
+ * Feature: 005-debug-info-display - User Story 2 (T014)
+ *
+ * @param title - Section title (e.g., "Orchestrator Decisions")
+ * @param data - Section data (will be JSON stringified)
+ * @returns DOM element for collapsible section
+ */
+function renderDebugSection(title: string, data: unknown): HTMLElement {
+  const details = document.createElement('details');
+  details.className = 'debug-section';
+
+  const summary = document.createElement('summary');
+  summary.textContent = title;
+  details.appendChild(summary);
+
+  const pre = document.createElement('pre');
+  pre.className = 'debug-content';
+  pre.textContent = JSON.stringify(data, null, 2); // Safe (textContent, not innerHTML)
+  details.appendChild(pre);
+
+  return details;
+}
+
+/**
+ * Render a debug content block with collapsible sections
+ * Feature: 005-debug-info-display (T009, updated for T015-T019)
  *
  * @param item - Debug content item (metadata.is_debug === true)
  * @returns DOM element for debug block
@@ -378,12 +402,48 @@ function renderDebugBlock(item: DebugContentItem): HTMLElement {
   title.textContent = item.metadata.title || 'Debug Information';
   container.appendChild(title);
 
-  // Render full JSON content (for User Story 1 - simple display)
-  // User Story 2 will add collapsible sections
-  const pre = document.createElement('pre');
-  pre.className = 'debug-content';
-  pre.textContent = JSON.stringify(debugData, null, 2); // Safe (textContent, not innerHTML)
-  container.appendChild(pre);
+  // Track if any sections were rendered
+  let sectionsRendered = 0;
+
+  // Render orchestrator_decisions section (T015)
+  if (debugData.orchestrator_decisions !== undefined) {
+    container.appendChild(
+      renderDebugSection('Orchestrator Decisions', debugData.orchestrator_decisions)
+    );
+    sectionsRendered++;
+  }
+
+  // Render agent_analyses section (T016)
+  if (debugData.agent_analyses !== undefined) {
+    container.appendChild(
+      renderDebugSection('Agent Analyses', debugData.agent_analyses)
+    );
+    sectionsRendered++;
+  }
+
+  // Render execution_metrics section (T017)
+  if (debugData.execution_metrics !== undefined) {
+    container.appendChild(
+      renderDebugSection('Execution Metrics', debugData.execution_metrics)
+    );
+    sectionsRendered++;
+  }
+
+  // Render request_metadata section (T018)
+  if (debugData.request_metadata !== undefined) {
+    container.appendChild(
+      renderDebugSection('Request Metadata', debugData.request_metadata)
+    );
+    sectionsRendered++;
+  }
+
+  // Empty state if no sections rendered (T019)
+  if (sectionsRendered === 0) {
+    const emptyMsg = document.createElement('p');
+    emptyMsg.className = 'debug-empty';
+    emptyMsg.textContent = 'Debug data contains no recognized sections.';
+    container.appendChild(emptyMsg);
+  }
 
   return container;
 }

@@ -56,14 +56,14 @@
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] Implement renderDebugSection helper function using &lt;details&gt;/&lt;summary&gt; elements in src/ui/overlay-renderer.ts
-- [ ] T015 [US2] Update renderDebugBlock to use renderDebugSection for orchestrator_decisions with conditional rendering (skip if undefined) in src/ui/overlay-renderer.ts
-- [ ] T016 [US2] Update renderDebugBlock to use renderDebugSection for agent_analyses with conditional rendering (skip if undefined) in src/ui/overlay-renderer.ts
-- [ ] T017 [US2] Update renderDebugBlock to use renderDebugSection for execution_metrics with conditional rendering (skip if undefined) in src/ui/overlay-renderer.ts
-- [ ] T018 [US2] Update renderDebugBlock to use renderDebugSection for request_metadata with conditional rendering (skip if undefined) in src/ui/overlay-renderer.ts
-- [ ] T019 [US2] Add empty state rendering when no sections present in debug data in src/ui/overlay-renderer.ts
-- [ ] T020 [P] [US2] Add collapsible section styles (.debug-section, details, summary) in src/ui/overlay.css
-- [ ] T021 [P] [US2] Add summary hover and open state styles (details[open] summary) in src/ui/overlay.css
+- [X] T014 [US2] Implement renderDebugSection helper function using <details>/<summary> elements in src/ui/overlay-renderer.ts
+- [X] T015 [US2] Update renderDebugBlock to use renderDebugSection for orchestrator_decisions with conditional rendering (skip if undefined) in src/ui/overlay-renderer.ts
+- [X] T016 [US2] Update renderDebugBlock to use renderDebugSection for agent_analyses with conditional rendering (skip if undefined) in src/ui/overlay-renderer.ts
+- [X] T017 [US2] Update renderDebugBlock to use renderDebugSection for execution_metrics with conditional rendering (skip if undefined) in src/ui/overlay-renderer.ts
+- [X] T018 [US2] Update renderDebugBlock to use renderDebugSection for request_metadata with conditional rendering (skip if undefined) in src/ui/overlay-renderer.ts
+- [X] T019 [US2] Add empty state rendering when no sections present in debug data in src/ui/overlay-renderer.ts
+- [X] T020 [P] [US2] Add collapsible section styles (.debug-section, details, summary) in src/ui/overlay.css
+- [X] T021 [P] [US2] Add summary hover and open state styles (details[open] summary) in src/ui/overlay.css
 
 **Checkpoint**: User Story 2 complete - Debug sections are collapsible, start collapsed, expand/collapse on click
 
