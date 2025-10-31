@@ -15,6 +15,8 @@ TweetYoink is a Chrome extension that captures tweet data from Twitter/X and sen
 - `chrome.storage.sync` for user configuration, `chrome.storage.local` for request tracker state (003-config-endpoint)
 - TypeScript 5.3 with strict mode + Existing Chrome Extension APIs (no new dependencies required) (004-response-overlay)
 - N/A (ephemeral overlay state, no persistence) (004-response-overlay)
+- TypeScript 5.x with strict mode + Vite (build tool), vite-plugin-web-extension, Chrome Extension Manifest V3 (005-debug-info-display)
+- N/A (UI-only feature) (005-debug-info-display)
 
 - **Language**: TypeScript 5.x with strict mode enabled
 - **Build Tool**: Vite 5.x with @crxjs/vite-plugin (Chrome extension support)
@@ -158,9 +160,9 @@ All components log with prefixes:
 - `[TweetYoink Popup]`
 
 ## Recent Changes
+- 005-debug-info-display: Added TypeScript 5.x with strict mode + Vite (build tool), vite-plugin-web-extension, Chrome Extension Manifest V3
 - 004-response-overlay: Added TypeScript 5.3 with strict mode + Existing Chrome Extension APIs (no new dependencies required)
 - 003-config-endpoint: Added TypeScript 5.x (existing project standard)
-- 002-post-view-yoink: Added TypeScript 5.x with strict mode enabled + Vite 5.x, @crxjs/vite-plugin for Chrome extension bundling
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

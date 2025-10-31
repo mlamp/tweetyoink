@@ -1,0 +1,330 @@
+# Debug Block Format Contract
+# Feature: 005-debug-info-display
+# Version: 1.0.0
+# Last Updated: 2025-10-31
+
+# This contract defines the expected JSON structure for debug blocks
+# sent by the server in ResponseContentItem.content field.
+
+# Debug Block Envelope (ResponseContentItem)
+# The debug block is wrapped in a standard ResponseContentItem structure
+debug_block_envelope:
+  type: "text"
+  content: "<JSON string - see debug_data_structure below>"
+  metadata:
+    is_debug: true  # REQUIRED - Flag to identify debug blocks
+    title: "Debug Information"  # OPTIONAL - Display title
+    timestamp: "2025-10-31T12:34:56Z"  # OPTIONAL - When debug block was generated
+
+# Debug Data Structure (parsed from content field)
+# All fields are optional to support graceful degradation
+debug_data_structure:
+
+  # Orchestrator's decision flags and reasoning
+  orchestrator_decisions:
+    type: object
+    description: "Orchestrator's analysis decisions"
+    properties:
+      needs_fact_check:
+        type: boolean
+        description: "Whether tweet needs fact-checking"
+        example: true
+
+      needs_deeper_research:
+        type: boolean
+        description: "Whether deeper research is required"
+        example: false
+
+      high_bias_detected:
+        type: boolean
+        description: "High bias detected in content"
+        example: false
+
+      propaganda_likely:
+        type: boolean
+        description: "Likely propaganda content"
+        example: false
+
+      reasons:
+        type: array
+        description: "Array of reasoning strings explaining decisions"
+        items:
+          type: string
+        example:
+          - "Tweet contains unverified statistical claim"
+          - "Source credibility needs verification"
+
+    # Extensibility: Additional fields allowed
+    additionalProperties: true
+
+  # Agent execution records
+  agent_analyses:
+    type: array
+    description: "Array of agent execution details and analysis output"
+    items:
+      type: object
+      properties:
+        agent:
+          type: string
+          description: "Agent identifier"
+          example: "bias_analyzer"
+
+        model:
+          type: string
+          description: "LLM model used by agent"
+          example: "claude-3-5-sonnet-20241022"
+
+        section:
+          type: string
+          description: "Which section of analysis this belongs to"
+          example: "bias_detection"
+
+        structured_analysis:
+          type: object
+          description: "Structured analysis output from agent"
+          example:
+            bias_score: 0.3
+            detected_techniques:
+              - "loaded_language"
+              - "emotional_appeal"
+
+        raw_output:
+          type: string
+          description: "Raw text output from agent (if structured_analysis not available)"
+          example: "The tweet exhibits moderate bias..."
+
+      # Extensibility: Additional fields allowed
+      additionalProperties: true
+
+  # Performance metrics
+  execution_metrics:
+    type: array
+    description: "Performance metrics for each agent execution"
+    items:
+      type: object
+      properties:
+        agent:
+          type: string
+          description: "Agent identifier matching AgentAnalysis.agent"
+          example: "bias_analyzer"
+
+        model:
+          type: string
+          description: "LLM model used"
+          example: "claude-3-5-sonnet-20241022"
+
+        processing_time_ms:
+          type: number
+          description: "Processing time in milliseconds"
+          example: 1234
+
+        tokens:
+          type: object
+          description: "Token counts"
+          properties:
+            input:
+              type: number
+              description: "Input tokens"
+              example: 450
+            output:
+              type: number
+              description: "Output tokens"
+              example: 120
+            total:
+              type: number
+              description: "Total tokens"
+              example: 570
+
+        temperature:
+          type: number
+          description: "Temperature parameter used for LLM call"
+          example: 0.0
+
+      # Extensibility: Additional fields allowed
+      additionalProperties: true
+
+  # Request metadata
+  request_metadata:
+    type: object
+    description: "Metadata about the tweet that was analyzed"
+    properties:
+      author:
+        type: string
+        description: "Tweet author username"
+        example: "@elonmusk"
+
+      url:
+        type: string
+        description: "Tweet URL"
+        example: "https://twitter.com/elonmusk/status/123456789"
+
+      has_media:
+        type: boolean
+        description: "Whether tweet has media attachments"
+        example: true
+
+      media_count:
+        type: number
+        description: "Number of media attachments"
+        example: 2
+
+      text_length:
+        type: number
+        description: "Character length of tweet text"
+        example: 280
+
+      tweet_type:
+        type: string
+        description: "Tweet type"
+        enum:
+          - "tweet"
+          - "retweet"
+          - "quote"
+          - "reply"
+        example: "tweet"
+
+    # Extensibility: Additional fields allowed
+    additionalProperties: true
+
+# Complete Example Response
+example_complete_response:
+  type: "text"
+  content: |
+    {
+      "orchestrator_decisions": {
+        "needs_fact_check": true,
+        "needs_deeper_research": false,
+        "high_bias_detected": false,
+        "propaganda_likely": false,
+        "reasons": [
+          "Tweet contains unverified statistical claim",
+          "Source credibility needs verification"
+        ]
+      },
+      "agent_analyses": [
+        {
+          "agent": "bias_analyzer",
+          "model": "claude-3-5-sonnet-20241022",
+          "section": "bias_detection",
+          "structured_analysis": {
+            "bias_score": 0.3,
+            "detected_techniques": ["loaded_language", "emotional_appeal"]
+          }
+        },
+        {
+          "agent": "fact_checker",
+          "model": "claude-3-5-sonnet-20241022",
+          "section": "fact_verification",
+          "structured_analysis": {
+            "needs_verification": true,
+            "claims": [
+              {
+                "claim": "90% of users agree",
+                "verifiable": false,
+                "confidence": "low"
+              }
+            ]
+          }
+        }
+      ],
+      "execution_metrics": [
+        {
+          "agent": "bias_analyzer",
+          "model": "claude-3-5-sonnet-20241022",
+          "processing_time_ms": 1234,
+          "tokens": {
+            "input": 450,
+            "output": 120,
+            "total": 570
+          },
+          "temperature": 0.0
+        },
+        {
+          "agent": "fact_checker",
+          "model": "claude-3-5-sonnet-20241022",
+          "processing_time_ms": 2145,
+          "tokens": {
+            "input": 520,
+            "output": 210,
+            "total": 730
+          },
+          "temperature": 0.0
+        }
+      ],
+      "request_metadata": {
+        "author": "@elonmusk",
+        "url": "https://twitter.com/elonmusk/status/123456789",
+        "has_media": true,
+        "media_count": 2,
+        "text_length": 280,
+        "tweet_type": "tweet"
+      }
+    }
+  metadata:
+    is_debug: true
+    title: "Debug Information"
+    timestamp: "2025-10-31T12:34:56Z"
+
+# Example Minimal Response (graceful degradation)
+example_minimal_response:
+  type: "text"
+  content: |
+    {
+      "orchestrator_decisions": {
+        "needs_fact_check": false
+      }
+    }
+  metadata:
+    is_debug: true
+
+# Validation Rules
+validation_rules:
+  envelope:
+    - "MUST have metadata.is_debug === true"
+    - "MUST have type === 'text'"
+    - "MUST have non-empty content string"
+
+  content:
+    - "MUST be valid JSON"
+    - "MUST parse to an object (not array, string, null)"
+    - "SHOULD have at least one of: orchestrator_decisions, agent_analyses, execution_metrics, request_metadata"
+    - "MAY have additional unknown fields (forward compatibility)"
+
+  graceful_degradation:
+    - "All debug_data fields are optional"
+    - "Missing sections should be skipped during rendering"
+    - "Unknown fields should be preserved but ignored"
+    - "Malformed JSON should render error state with raw content"
+
+# Error Handling
+error_scenarios:
+  malformed_json:
+    description: "Content is not valid JSON"
+    handling: "Display error message + raw content in <pre> tag"
+
+  non_object_json:
+    description: "JSON parses but result is not an object"
+    handling: "Display error message + raw content"
+
+  empty_sections:
+    description: "All sections are missing or undefined"
+    handling: "Display message: 'Debug data contains no recognized sections'"
+
+  partial_data:
+    description: "Some sections missing (e.g., only orchestrator_decisions)"
+    handling: "Render available sections, skip missing ones"
+
+# Size Constraints
+size_constraints:
+  typical_size: "10-20 KB (uncompressed JSON)"
+  maximum_size: "100 KB (per success criteria SC-006)"
+  performance_target: "<100ms rendering time (per success criteria SC-002)"
+
+# Version History
+version_history:
+  - version: "1.0.0"
+    date: "2025-10-31"
+    changes:
+      - "Initial contract definition"
+      - "All fields optional for graceful degradation"
+      - "Forward compatibility via additionalProperties"
