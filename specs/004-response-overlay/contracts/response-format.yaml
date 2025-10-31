@@ -1,0 +1,286 @@
+openapi: 3.0.0
+info:
+  title: TweetYoink Server Response Format
+  version: 1.1.0
+  description: |
+    API contract for TweetYoink server responses.
+
+    This specification documents the expected response format for servers
+    that process TweetYoink captures. Feature 004 adds support for structured
+    content items that can be displayed in an overlay.
+
+    **Backward Compatibility**: Servers that return legacy format (non-array result)
+    will continue to work. The extension handles conversion internally.
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+paths:
+  /:
+    post:
+      summary: Submit tweet data for processing
+      description: |
+        Primary endpoint for tweet capture data. Can return either synchronous
+        results or initiate async processing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './async-response-api.yaml#/components/schemas/TweetData'
+      responses:
+        '200':
+          description: Successful submission
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
+
+  /status:
+    post:
+      summary: Check async request status
+      description: Poll this endpoint to check status of async requests
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - requestId
+              properties:
+                requestId:
+                  type: string
+                  description: Request ID returned from initial POST
+      responses:
+        '200':
+          description: Status information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
+
+components:
+  schemas:
+    ResponseContentItem:
+      type: object
+      required:
+        - type
+        - content
+      properties:
+        type:
+          type: string
+          enum: [text, image, link, unknown]
+          description: |
+            Content type identifier. Determines how the extension renders the item.
+            - "text": Plain text content (rendered via textContent - XSS safe)
+            - "image": Image URL (future support)
+            - "link": Hyperlink URL (future support)
+            - Other values: Gracefully ignored by extension
+        content:
+          type: string
+          description: |
+            Content payload. Interpretation depends on type:
+            - type="text": Plain text string to display
+            - type="image": Image URL (future)
+            - type="link": Hyperlink URL (future)
+        metadata:
+          type: object
+          additionalProperties: true
+          description: |
+            Optional metadata for future extensions.
+            Examples: title, timestamp, confidence, etc.
+      example:
+        type: text
+        content: "This tweet demonstrates positive sentiment (95% confidence)"
+        metadata:
+          title: "Sentiment Analysis"
+          timestamp: "2025-10-29T12:00:00Z"
+
+    PostResponse:
+      oneOf:
+        - $ref: '#/components/schemas/SyncResponse'
+        - $ref: '#/components/schemas/AsyncResponse'
+        - $ref: '#/components/schemas/ErrorResponse'
+
+    SyncResponse:
+      type: object
+      required:
+        - status
+        - result
+      properties:
+        status:
+          type: string
+          enum: [completed]
+          description: Indicates synchronous processing completed
+        result:
+          oneOf:
+            - type: array
+              items:
+                $ref: '#/components/schemas/ResponseContentItem'
+              description: |
+                **Recommended format** for feature 004 overlay support.
+                Array of content items that will be displayed in overlay.
+            - type: object
+              description: |
+                **Legacy format** (backward compatible).
+                Extension logs to console but does not display in overlay.
+      example:
+        status: completed
+        result:
+          - type: text
+            content: "Analysis: This tweet shows positive sentiment"
+          - type: text
+            content: "Detected topics: technology, AI, innovation"
+          - type: text
+            content: "Engagement prediction: High (estimated 500+ likes)"
+
+    AsyncResponse:
+      type: object
+      required:
+        - status
+        - requestId
+      properties:
+        status:
+          type: string
+          enum: [pending, processing]
+          description: |
+            Async processing status
+            - "pending": Queued but not started
+            - "processing": Currently being processed
+        requestId:
+          type: string
+          description: Unique ID for status polling
+        estimatedDuration:
+          type: number
+          description: Estimated completion time in seconds (optional)
+        progress:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Processing progress (0.0 to 1.0, optional)
+        message:
+          type: string
+          description: Human-readable status message (optional)
+      example:
+        status: processing
+        requestId: "req_1698576000_abc123"
+        estimatedDuration: 30
+        progress: 0.65
+        message: "Processing tweet analysis..."
+
+    ErrorResponse:
+      type: object
+      required:
+        - status
+        - error
+      properties:
+        status:
+          type: string
+          enum: [error, failed]
+          description: Indicates processing failed
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              description: Machine-readable error code
+              examples:
+                - PARSE_ERROR
+                - RATE_LIMIT_EXCEEDED
+                - AUTHENTICATION_FAILED
+            message:
+              type: string
+              description: Human-readable error message
+      example:
+        status: error
+        error:
+          code: "RATE_LIMIT_EXCEEDED"
+          message: "Rate limit exceeded. Try again in 60 seconds."
+
+  examples:
+    SyncWithOverlayContent:
+      summary: Sync response with overlay content
+      description: Server returns immediately with multiple content items
+      value:
+        status: completed
+        result:
+          - type: text
+            content: "Sentiment: Positive (confidence: 95%)"
+          - type: text
+            content: "Key topics: AI, machine learning, technology"
+          - type: text
+            content: "Predicted engagement: 500+ likes, 100+ retweets"
+
+    SyncLegacyFormat:
+      summary: Sync response (legacy format)
+      description: Backward compatible - works but no overlay display
+      value:
+        status: completed
+        result:
+          message: "Tweet analyzed successfully"
+          sentiment: "positive"
+          topics: ["AI", "technology"]
+
+    AsyncInitiated:
+      summary: Async processing started
+      description: Server accepts request, returns ID for polling
+      value:
+        status: pending
+        requestId: "req_1698576000_abc123"
+        estimatedDuration: 30
+
+    AsyncProcessing:
+      summary: Async processing in progress
+      description: Status endpoint returns progress update
+      value:
+        status: processing
+        requestId: "req_1698576000_abc123"
+        progress: 0.65
+        message: "Analyzing tweet content..."
+
+    AsyncCompleted:
+      summary: Async processing completed
+      description: Status endpoint returns final results
+      value:
+        status: completed
+        result:
+          - type: text
+            content: "Analysis complete: Positive sentiment detected"
+          - type: text
+            content: "Processing time: 28 seconds"
+
+    ErrorRateLimit:
+      summary: Rate limit error
+      description: Server rejects due to rate limiting
+      value:
+        status: error
+        error:
+          code: "RATE_LIMIT_EXCEEDED"
+          message: "Rate limit exceeded. Try again in 60 seconds."
+
+notes:
+  - |
+    **Feature 004 Overlay Support**:
+    To enable overlay display, return `result` as an array of ResponseContentItem objects.
+    Items with `type="text"` will be rendered in the overlay.
+
+  - |
+    **Backward Compatibility**:
+    Legacy servers returning non-array `result` will continue to work.
+    Data is logged to console but not displayed in overlay.
+
+  - |
+    **Content Safety**:
+    Extension uses `textContent` for rendering, not `innerHTML`.
+    Server does not need to sanitize content - extension handles XSS protection.
+
+  - |
+    **Performance Recommendations**:
+    - Keep array length ≤ 20 items for optimal UX (extension supports up to 50)
+    - Keep content strings ≤ 1000 characters per item for readability
+    - Use metadata for structured data instead of embedding in content string

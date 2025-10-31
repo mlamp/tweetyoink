@@ -1,0 +1,475 @@
+/**
+ * TweetYoink Overlay Styles
+ * Feature: 004-response-overlay
+ *
+ * All classes are scoped with .tweetyoink-overlay-* prefix to avoid
+ * conflicts with Twitter/X page styles. Uses BEM naming convention.
+ */
+
+/* ============================================
+   Backdrop - Semi-transparent overlay background
+   ============================================ */
+
+.tweetyoink-overlay-backdrop {
+  /* Fixed positioning to cover entire viewport */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  /* Z-index above Twitter UI */
+  z-index: 10001;
+
+  /* Semi-transparent black background */
+  background-color: rgba(0, 0, 0, 0.5);
+
+  /* Smooth fade-in animation */
+  opacity: 0;
+  animation: tweetyoink-overlay-fade-in 200ms ease-out forwards;
+
+  /* Ensure backdrop is clickable for dismissal */
+  cursor: pointer;
+}
+
+/* Fade-in animation for backdrop */
+@keyframes tweetyoink-overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   Container - Main overlay box
+   ============================================ */
+
+.tweetyoink-overlay-container {
+  /* Fixed positioning, centered in viewport */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  /* Z-index above backdrop */
+  z-index: 10002;
+
+  /* Size constraints */
+  max-width: 90vw;
+  max-height: 80vh;
+  width: 600px;
+
+  /* Visual styling */
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+
+  /* Layout */
+  display: flex;
+  flex-direction: column;
+
+  /* CSS reset to override Twitter styles */
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+
+  /* Smooth slide-in animation */
+  opacity: 0;
+  transform: translate(-50%, -45%);
+  animation: tweetyoink-overlay-slide-in 200ms ease-out forwards;
+
+  /* Prevent clicks from reaching backdrop */
+  cursor: default;
+}
+
+/* Slide-in animation for container */
+@keyframes tweetyoink-overlay-slide-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* ============================================
+   Header - Top bar with close button
+   ============================================ */
+
+.tweetyoink-overlay-header {
+  /* Layout */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  /* Spacing */
+  padding: 20px 24px;
+  border-bottom: 1px solid #e1e8ed;
+
+  /* Flex shrink to allow content area to scroll */
+  flex-shrink: 0;
+}
+
+.tweetyoink-overlay-title {
+  /* Typography */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #0f1419;
+
+  /* Reset */
+  margin: 0;
+  padding: 0;
+}
+
+.tweetyoink-overlay-close {
+  /* Button reset */
+  background: none;
+  border: none;
+  padding: 8px;
+  margin: -8px;
+  cursor: pointer;
+
+  /* Visual styling */
+  color: #536471;
+  font-size: 20px;
+  line-height: 1;
+  border-radius: 50%;
+  transition: background-color 150ms ease;
+
+  /* Ensure visible and clickable */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.tweetyoink-overlay-close:hover {
+  background-color: rgba(15, 20, 25, 0.1);
+}
+
+.tweetyoink-overlay-close:active {
+  background-color: rgba(15, 20, 25, 0.2);
+}
+
+/* ============================================
+   Content Area - Scrollable content
+   ============================================ */
+
+.tweetyoink-overlay-content {
+  /* Scrollable area */
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* Spacing */
+  padding: 24px;
+
+  /* Allow to grow and shrink */
+  flex: 1;
+  min-height: 0;
+
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Webkit scrollbar styling */
+.tweetyoink-overlay-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tweetyoink-overlay-content::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.tweetyoink-overlay-content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.tweetyoink-overlay-content::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
+   Content Items - Individual text items
+   ============================================ */
+
+.tweetyoink-overlay-item {
+  /* Spacing */
+  margin-bottom: 16px;
+  padding: 16px;
+
+  /* Visual styling */
+  background-color: #f7f9f9;
+  border-radius: 8px;
+  border-left: 3px solid #1d9bf0;
+
+  /* Typography */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #0f1419;
+
+  /* Word wrapping for long content */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+
+  /* Reset */
+  box-sizing: border-box;
+}
+
+.tweetyoink-overlay-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Hover effect for better visual feedback */
+.tweetyoink-overlay-item:hover {
+  background-color: #eff3f4;
+}
+
+/* ============================================
+   Image Content Items
+   ============================================ */
+
+.tweetyoink-overlay-image {
+  /* Full width within container */
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+
+  /* Spacing */
+  display: block;
+  margin: 0;
+
+  /* Visual styling */
+  border-radius: 4px;
+  background-color: #f0f0f0;
+
+  /* Loading behavior */
+  object-fit: contain;
+}
+
+/* Error state for failed images */
+.tweetyoink-overlay-error {
+  padding: 12px;
+  background-color: #fee;
+  border: 1px solid #fcc;
+  border-radius: 4px;
+  color: #c33;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ============================================
+   Empty State Messages
+   ============================================ */
+
+.tweetyoink-overlay-message {
+  /* Center alignment */
+  text-align: center;
+  padding: 40px 24px;
+
+  /* Typography */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #536471;
+
+  /* Reset */
+  margin: 0;
+}
+
+.tweetyoink-overlay-message--empty {
+  /* Empty state specific styling */
+  font-style: italic;
+}
+
+.tweetyoink-overlay-empty-state {
+  /* Center content */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  /* Spacing */
+  padding: 48px 24px;
+  min-height: 160px;
+
+  /* Typography */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.6;
+  color: #536471;
+
+  /* Visual styling */
+  background-color: #f7f9f9;
+  border-radius: 12px;
+  border: 2px dashed #cfd9de;
+
+  /* Reset */
+  margin: 0;
+  box-sizing: border-box;
+}
+
+/* ============================================
+   Responsive Design - Mobile/Tablet/Desktop
+   ============================================ */
+
+/* Mobile viewport (320px - 599px) */
+@media (max-width: 599px) {
+  .tweetyoink-overlay-container {
+    width: 95vw;
+    max-height: 85vh;
+  }
+
+  .tweetyoink-overlay-header {
+    padding: 16px 20px;
+  }
+
+  .tweetyoink-overlay-content {
+    padding: 20px;
+  }
+
+  .tweetyoink-overlay-title {
+    font-size: 18px;
+  }
+
+  .tweetyoink-overlay-item {
+    padding: 14px;
+    font-size: 14px;
+  }
+}
+
+/* Tablet viewport (600px - 1023px) */
+@media (min-width: 600px) and (max-width: 1023px) {
+  .tweetyoink-overlay-container {
+    width: 80vw;
+    max-width: 700px;
+  }
+}
+
+/* Desktop viewport (1024px - 1919px) */
+@media (min-width: 1024px) and (max-width: 1919px) {
+  .tweetyoink-overlay-container {
+    width: 600px;
+  }
+}
+
+/* Large desktop / 4K viewport (1920px+) */
+@media (min-width: 1920px) {
+  .tweetyoink-overlay-container {
+    width: 800px;
+    max-width: 40vw;
+  }
+
+  .tweetyoink-overlay-title {
+    font-size: 22px;
+  }
+
+  .tweetyoink-overlay-item {
+    font-size: 16px;
+    padding: 18px;
+  }
+}
+
+/* ============================================
+   Accessibility & Dark Mode Support
+   ============================================ */
+
+/* Focus styles for keyboard navigation */
+.tweetyoink-overlay-close:focus-visible {
+  outline: 2px solid #1d9bf0;
+  outline-offset: 2px;
+}
+
+/* Dark mode support (matches Twitter's dark theme) */
+@media (prefers-color-scheme: dark) {
+  .tweetyoink-overlay-container {
+    background-color: #15202b;
+  }
+
+  .tweetyoink-overlay-header {
+    border-bottom-color: #38444d;
+  }
+
+  .tweetyoink-overlay-title {
+    color: #ffffff;
+  }
+
+  .tweetyoink-overlay-close {
+    color: #8b98a5;
+  }
+
+  .tweetyoink-overlay-close:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .tweetyoink-overlay-close:active {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .tweetyoink-overlay-item {
+    background-color: #192734;
+    border-left-color: #1d9bf0;
+    color: #ffffff;
+  }
+
+  .tweetyoink-overlay-item:hover {
+    background-color: #1c2e3d;
+  }
+
+  .tweetyoink-overlay-message {
+    color: #8b98a5;
+  }
+
+  .tweetyoink-overlay-empty-state {
+    background-color: #192734;
+    border-color: #38444d;
+    color: #8b98a5;
+  }
+
+  .tweetyoink-overlay-content::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .tweetyoink-overlay-content::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .tweetyoink-overlay-container {
+    border: 2px solid currentColor;
+  }
+
+  .tweetyoink-overlay-item {
+    border-left-width: 4px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .tweetyoink-overlay-backdrop,
+  .tweetyoink-overlay-container {
+    animation: none;
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+
+  .tweetyoink-overlay-close {
+    transition: none;
+  }
+
+  .tweetyoink-overlay-content {
+    scroll-behavior: auto;
+  }
+}

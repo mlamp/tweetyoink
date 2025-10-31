@@ -1,0 +1,758 @@
+openapi: 3.0.3
+info:
+  title: TweetYoink Server API
+  version: 1.2.0
+  description: |
+    Complete API specification for TweetYoink backend servers.
+
+    This is the **single source of truth** for the API contract between the TweetYoink
+    Chrome extension and backend servers. All server implementations MUST conform to this specification.
+
+    ## Key Features
+
+    - **Sync and Async Processing**: Servers can respond immediately or initiate background processing
+    - **Content Items**: Structured response format with text, image, and other content types
+    - **Overlay Display**: Results displayed in overlay UI within the extension
+    - **Type Safety**: Complete schema definitions for request/response validation
+
+    ## Extension Features
+
+    - ✅ Extracts tweet data (text, author, metrics, media, URL)
+    - ✅ Sends to configured backend endpoint
+    - ✅ Displays response in overlay (text + image content)
+    - ✅ Polls async requests every 5 seconds
+    - ✅ Handles errors gracefully
+
+    ## Server Requirements
+
+    1. **Accept POST requests** with TweetData payload
+    2. **Return PostResponse** (sync or async format)
+    3. **Support /status endpoint** for async polling (if using async mode)
+    4. **Return content items array** for overlay display
+    5. **Handle CORS** for Chrome extension origin
+
+  contact:
+    name: TweetYoink API Support
+    url: https://github.com/yourusername/tweetyoink
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+  - url: https://api.example.com
+    description: Production server (user-configured)
+
+tags:
+  - name: Tweet Processing
+    description: Endpoints for receiving and processing tweet data
+  - name: Async Status
+    description: Polling endpoints for async request status
+
+paths:
+  /:
+    post:
+      summary: Submit tweet data for processing
+      description: |
+        Primary endpoint that receives captured tweet data from the extension.
+
+        **Endpoint URL**: User-configurable in extension options (e.g., `http://localhost:3000/` or `https://api.example.com/tweets`)
+
+        ## Response Modes
+
+        ### Synchronous (Immediate)
+        Process tweet immediately and return results. Best for:
+        - Simple analysis (<5 seconds)
+        - Cached results
+        - Lightweight processing
+
+        ### Asynchronous (Polling)
+        Return request ID and process in background. Best for:
+        - LLM analysis (>5 seconds)
+        - External API calls
+        - Heavy computation
+
+        Extension polls `/status` endpoint every 5 seconds until complete.
+
+      operationId: submitTweet
+      tags:
+        - Tweet Processing
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TweetData'
+            examples:
+              simpleTweet:
+                summary: Basic tweet with text and metrics
+                value:
+                  text: "Just deployed the new feature to production! 🚀"
+                  url: "https://x.com/johndoe/status/1234567890"
+                  author:
+                    handle: "johndoe"
+                    displayName: "John Doe"
+                    isVerified: false
+                    profileImageUrl: "https://pbs.twimg.com/profile_images/abc123.jpg"
+                  timestamp: "2025-10-31T15:30:00.000Z"
+                  metrics:
+                    replyCount: 5
+                    retweetCount: 12
+                    likeCount: 48
+                    bookmarkCount: 3
+                    viewCount: 1250
+                  media: []
+                  linkCard: null
+                  tweetType:
+                    isQuote: false
+                    isRetweet: false
+                    isReply: false
+                  parent: null
+                  metadata:
+                    confidence: 0.95
+                    capturedAt: "2025-10-31T15:31:23.456Z"
+                    extractionTier: "primary"
+                    warnings: []
+                    duration: 45
+
+              tweetWithImage:
+                summary: Tweet with image attachment
+                value:
+                  text: "Check out this amazing sunset! 🌅"
+                  url: "https://x.com/photographer/status/9876543210"
+                  author:
+                    handle: "photographer"
+                    displayName: "Jane Smith"
+                    isVerified: true
+                    profileImageUrl: "https://pbs.twimg.com/profile_images/def456.jpg"
+                  timestamp: "2025-10-31T18:45:00.000Z"
+                  metrics:
+                    replyCount: 23
+                    retweetCount: 156
+                    likeCount: 892
+                    bookmarkCount: 45
+                    viewCount: 15000
+                  media:
+                    - type: "image"
+                      url: "https://pbs.twimg.com/media/image123.jpg"
+                      thumbnailUrl: null
+                      altText: "Beautiful sunset over the ocean"
+                      width: 1920
+                      height: 1080
+                  linkCard: null
+                  tweetType:
+                    isQuote: false
+                    isRetweet: false
+                    isReply: false
+                  parent: null
+                  metadata:
+                    confidence: 0.98
+                    capturedAt: "2025-10-31T18:46:15.789Z"
+                    extractionTier: "primary"
+                    warnings: []
+                    duration: 52
+
+      responses:
+        '200':
+          description: Request accepted - processing initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
+              examples:
+                syncSuccess:
+                  summary: Synchronous - immediate results
+                  value:
+                    status: "completed"
+                    result:
+                      - type: "text"
+                        content: "✅ Sentiment Analysis: Positive (95% confidence)"
+                        metadata:
+                          title: "Sentiment"
+                          model: "claude-3-5-sonnet"
+                      - type: "text"
+                        content: "📊 Predicted Engagement: High (est. 500+ likes)"
+                        metadata:
+                          title: "Engagement Prediction"
+                      - type: "text"
+                        content: "🏷️ Topics: technology, deployment, devops"
+                        metadata:
+                          title: "Topic Classification"
+
+                asyncPending:
+                  summary: Asynchronous - processing started
+                  value:
+                    status: "pending"
+                    requestId: "req_1730394123_abc123xyz"
+                    estimatedDuration: 30
+                    message: "Tweet queued for AI analysis"
+
+        '400':
+          description: Bad Request - Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error:
+                  code: "INVALID_TWEET_DATA"
+                  message: "Required field 'text' is missing or null"
+
+        '401':
+          description: Unauthorized - Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error:
+                  code: "UNAUTHORIZED"
+                  message: "Invalid API key"
+
+        '429':
+          description: Rate Limit Exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error:
+                  code: "RATE_LIMIT_EXCEEDED"
+                  message: "Maximum 100 requests per hour exceeded. Try again in 45 minutes."
+
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error:
+                  code: "INTERNAL_ERROR"
+                  message: "AI service temporarily unavailable"
+
+  /status:
+    post:
+      summary: Check async request status
+      description: |
+        Poll this endpoint to check the status of an async request.
+
+        **Polling Behavior**:
+        - Extension polls every 5 seconds
+        - Timeout after 5 minutes (60 polls)
+        - Stops polling when status is "completed", "failed", or "error"
+
+        **Endpoint URL**: Automatically constructed by appending `/status` to base endpoint
+        - If base is `http://localhost:3000/`, status endpoint is `http://localhost:3000/status`
+        - If base is `https://api.example.com/tweets`, status endpoint is `https://api.example.com/tweets/status`
+
+      operationId: checkStatus
+      tags:
+        - Async Status
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - requestId
+              properties:
+                requestId:
+                  type: string
+                  description: Request ID returned from initial POST request
+                  example: "req_1730394123_abc123xyz"
+
+      responses:
+        '200':
+          description: Status information retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
+              examples:
+                processing:
+                  summary: Still processing
+                  value:
+                    status: "processing"
+                    requestId: "req_1730394123_abc123xyz"
+                    progress: 0.65
+                    message: "Analyzing tweet with Claude AI..."
+
+                completed:
+                  summary: Processing complete
+                  value:
+                    status: "completed"
+                    result:
+                      - type: "text"
+                        content: "Analysis complete! Positive sentiment detected."
+                      - type: "text"
+                        content: "Processing time: 28 seconds"
+
+                failed:
+                  summary: Processing failed
+                  value:
+                    status: "failed"
+                    error:
+                      code: "AI_TIMEOUT"
+                      message: "AI analysis exceeded 5 minute timeout"
+
+        '404':
+          description: Request ID not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                status: "error"
+                error:
+                  code: "REQUEST_NOT_FOUND"
+                  message: "Request ID not found or expired (requests expire after 1 hour)"
+
+components:
+  schemas:
+    TweetData:
+      type: object
+      description: Complete tweet data extracted by TweetYoink extension
+      required:
+        - text
+        - author
+        - metrics
+        - media
+        - tweetType
+        - metadata
+      properties:
+        text:
+          type: string
+          nullable: true
+          description: |
+            Tweet text content with emojis preserved.
+            Null if extraction failed or image-only tweet.
+          example: "Just deployed the new feature to production! 🚀"
+
+        url:
+          type: string
+          nullable: true
+          description: |
+            Direct URL to the tweet (format: https://x.com/{handle}/status/{tweetId}).
+            Added in extension v0.2.0+
+          example: "https://x.com/johndoe/status/1234567890"
+
+        author:
+          $ref: '#/components/schemas/Author'
+
+        timestamp:
+          type: string
+          format: date-time
+          nullable: true
+          description: When the tweet was posted (ISO 8601 format)
+          example: "2025-10-31T15:30:00.000Z"
+
+        metrics:
+          $ref: '#/components/schemas/Metrics'
+
+        media:
+          type: array
+          items:
+            $ref: '#/components/schemas/MediaItem'
+          description: Array of media attachments (images, videos, GIFs)
+
+        linkCard:
+          $ref: '#/components/schemas/LinkCard'
+
+        tweetType:
+          $ref: '#/components/schemas/TweetType'
+
+        parent:
+          allOf:
+            - $ref: '#/components/schemas/TweetData'
+          nullable: true
+          description: |
+            Parent tweet data if this is a quote tweet (tweetType.isQuote = true).
+            Recursively includes full tweet data of quoted tweet.
+
+        metadata:
+          $ref: '#/components/schemas/ExtractionMetadata'
+
+    Author:
+      type: object
+      description: Tweet author information
+      required:
+        - handle
+        - displayName
+        - isVerified
+      properties:
+        handle:
+          type: string
+          nullable: true
+          description: Twitter/X handle without @ symbol
+          example: "johndoe"
+
+        displayName:
+          type: string
+          nullable: true
+          description: User's display name
+          example: "John Doe"
+
+        isVerified:
+          type: boolean
+          description: Whether user has verified badge
+          example: false
+
+        profileImageUrl:
+          type: string
+          nullable: true
+          description: URL to user's profile image
+          example: "https://pbs.twimg.com/profile_images/abc123.jpg"
+
+    Metrics:
+      type: object
+      description: Tweet engagement metrics
+      properties:
+        replyCount:
+          type: integer
+          nullable: true
+          description: Number of replies
+          example: 5
+
+        retweetCount:
+          type: integer
+          nullable: true
+          description: Number of retweets/reposts
+          example: 12
+
+        likeCount:
+          type: integer
+          nullable: true
+          description: Number of likes
+          example: 48
+
+        bookmarkCount:
+          type: integer
+          nullable: true
+          description: Number of bookmarks (often hidden by Twitter)
+          example: 3
+
+        viewCount:
+          type: integer
+          nullable: true
+          description: Number of views
+          example: 1250
+
+    MediaItem:
+      type: object
+      description: Single media attachment
+      required:
+        - type
+        - url
+      properties:
+        type:
+          type: string
+          enum: [image, video, gif]
+          description: Media type
+          example: "image"
+
+        url:
+          type: string
+          description: |
+            Media URL - may be http://, https://, or blob: URL.
+            Chrome extensions often use blob: URLs for DOM-captured media.
+            Note: blob: URLs cannot be fetched server-side.
+          example: "https://pbs.twimg.com/media/image123.jpg"
+
+        thumbnailUrl:
+          type: string
+          nullable: true
+          description: |
+            Thumbnail/poster image URL (for videos) - may be http://, https://, or blob: URL.
+            Chrome extensions often use blob: URLs for DOM-captured media.
+          example: "https://pbs.twimg.com/video_thumb/thumb123.jpg"
+
+        altText:
+          type: string
+          nullable: true
+          description: Accessibility alt text
+          example: "Beautiful sunset over the ocean"
+
+        width:
+          type: integer
+          nullable: true
+          description: Image width in pixels
+          example: 1920
+
+        height:
+          type: integer
+          nullable: true
+          description: Image height in pixels
+          example: 1080
+
+    LinkCard:
+      type: object
+      nullable: true
+      description: Link preview card data
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          description: Destination URL
+          example: "https://example.com/article"
+
+        title:
+          type: string
+          nullable: true
+          description: Card title
+          example: "Interesting Article Title"
+
+        description:
+          type: string
+          nullable: true
+          description: Card description/preview text
+          example: "This article discusses..."
+
+        imageUrl:
+          type: string
+          nullable: true
+          description: Card preview image URL
+          example: "https://example.com/preview.jpg"
+
+        domain:
+          type: string
+          nullable: true
+          description: Display domain
+          example: "example.com"
+
+    TweetType:
+      type: object
+      description: Tweet classification flags
+      required:
+        - isQuote
+        - isRetweet
+        - isReply
+      properties:
+        isQuote:
+          type: boolean
+          description: True if this tweet quotes another tweet
+          example: false
+
+        isRetweet:
+          type: boolean
+          description: True if this is a retweet
+          example: false
+
+        isReply:
+          type: boolean
+          description: True if this is a reply to another tweet
+          example: false
+
+    ExtractionMetadata:
+      type: object
+      description: Metadata about the extraction process
+      required:
+        - confidence
+        - capturedAt
+        - extractionTier
+        - warnings
+        - duration
+      properties:
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Extraction confidence score (0.0 = low, 1.0 = high)
+          example: 0.95
+
+        capturedAt:
+          type: string
+          format: date-time
+          description: When the tweet was captured
+          example: "2025-10-31T15:31:23.456Z"
+
+        extractionTier:
+          type: string
+          description: Which selector tier was used (primary, secondary, tertiary)
+          example: "primary"
+
+        warnings:
+          type: array
+          items:
+            type: string
+          description: Non-fatal extraction warnings
+          example: ["Failed to extract bookmark count"]
+
+        duration:
+          type: integer
+          description: Extraction duration in milliseconds
+          example: 45
+
+    PostResponse:
+      oneOf:
+        - $ref: '#/components/schemas/SyncResponse'
+        - $ref: '#/components/schemas/AsyncResponse'
+        - $ref: '#/components/schemas/ErrorResponse'
+      discriminator:
+        propertyName: status
+        mapping:
+          completed: '#/components/schemas/SyncResponse'
+          pending: '#/components/schemas/AsyncResponse'
+          processing: '#/components/schemas/AsyncResponse'
+          error: '#/components/schemas/ErrorResponse'
+          failed: '#/components/schemas/ErrorResponse'
+
+    SyncResponse:
+      type: object
+      description: Synchronous response with immediate results
+      required:
+        - status
+        - result
+      properties:
+        status:
+          type: string
+          enum: [completed]
+          description: Indicates processing completed successfully
+
+        result:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResponseContentItem'
+          description: |
+            Array of content items to display in overlay.
+            Extension filters for type="text" and type="image" (other types ignored).
+          minItems: 1
+          maxItems: 50
+          example:
+            - type: "text"
+              content: "Sentiment: Positive (95% confidence)"
+            - type: "text"
+              content: "Topics: technology, AI, deployment"
+
+    AsyncResponse:
+      type: object
+      description: Asynchronous response indicating background processing
+      required:
+        - status
+        - requestId
+      properties:
+        status:
+          type: string
+          enum: [pending, processing]
+          description: |
+            - "pending": Queued but not started
+            - "processing": Currently being processed
+
+        requestId:
+          type: string
+          description: Unique ID for status polling (must be unique and non-guessable)
+          example: "req_1730394123_abc123xyz"
+
+        estimatedDuration:
+          type: integer
+          description: Estimated completion time in seconds (optional)
+          example: 30
+
+        progress:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Processing progress from 0.0 to 1.0 (optional)
+          example: 0.65
+
+        message:
+          type: string
+          description: Human-readable status message (optional, displayed to user)
+          example: "Analyzing tweet with Claude AI..."
+
+    ErrorResponse:
+      type: object
+      description: Error response
+      required:
+        - status
+        - error
+      properties:
+        status:
+          type: string
+          enum: [error, failed]
+          description: Indicates processing failed
+
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              description: Machine-readable error code (UPPER_SNAKE_CASE)
+              example: "RATE_LIMIT_EXCEEDED"
+
+            message:
+              type: string
+              description: Human-readable error message (displayed to user)
+              example: "Rate limit exceeded. Try again in 60 seconds."
+
+    ResponseContentItem:
+      type: object
+      description: Single content item for overlay display
+      required:
+        - type
+        - content
+      properties:
+        type:
+          type: string
+          enum: [text, image, link, unknown]
+          description: |
+            Content type determines rendering:
+            - "text": Plain text (rendered with textContent - XSS safe)
+            - "image": Image URL (rendered as <img> tag)
+            - "link": URL (future support)
+            - "unknown": Ignored by extension
+          example: "text"
+
+        content:
+          type: string
+          description: |
+            Content payload:
+            - type="text": Plain text string to display
+            - type="image": Image URL to render
+            - type="link": URL (future)
+          example: "Sentiment Analysis: Positive (95% confidence)"
+
+        metadata:
+          type: object
+          additionalProperties: true
+          description: |
+            Optional metadata (not displayed in overlay, available for future use).
+            Examples: title, timestamp, confidence, model name, etc.
+          example:
+            title: "Sentiment Analysis"
+            model: "claude-3-5-sonnet"
+            confidence: 0.95
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key authentication (if server requires it)
+
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Bearer token authentication (if server requires it)
+
+security:
+  - ApiKeyAuth: []
+  - BearerAuth: []
+  - {} # No authentication (allowed)
+
+externalDocs:
+  description: TweetYoink Extension Documentation
+  url: https://github.com/yourusername/tweetyoink

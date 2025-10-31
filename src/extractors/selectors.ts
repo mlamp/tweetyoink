@@ -10,6 +10,7 @@
  */
 
 import type { SelectorConfig } from '../types/tweet-data';
+import { logger } from '../utils/logger';
 
 /**
  * Tweet text content selectors
@@ -18,13 +19,76 @@ export const tweetTextSelector: SelectorConfig = {
   primary: {
     selector: '[data-testid="tweetText"]',
     type: 'css',
-    extractor: (el) => el.textContent?.trim() || null,
+    extractor: (el) => {
+      // Twitter renders emojis as <img> tags with alt attributes
+      // We need to reconstruct the text by walking through all child nodes
+      // and replacing emoji images with their alt text in the correct order
+
+      let result = '';
+      let emojiCount = 0;
+
+      // Walk through all child nodes in order to preserve emoji positions
+      const walkNodes = (node: Node) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          // Text node - add the text content
+          result += node.textContent || '';
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const element = node as Element;
+
+          // Check if this is an emoji image
+          if (element.tagName === 'IMG' && element.hasAttribute('alt')) {
+            // Add the emoji from alt attribute
+            const emoji = element.getAttribute('alt') || '';
+            result += emoji;
+            emojiCount++;
+            logger.debug('[TextExtractor] Found emoji:', emoji);
+          } else {
+            // Recursively process child nodes
+            node.childNodes.forEach(walkNodes);
+          }
+        }
+      };
+
+      // Process all child nodes of the tweet text element
+      el.childNodes.forEach(walkNodes);
+
+      // Trim and return
+      const text = result.trim();
+
+      logger.debug('[TextExtractor] Total emojis found:', emojiCount);
+      logger.debug('[TextExtractor] Final text length:', text.length);
+      logger.debug('[TextExtractor] Final text preview (first 100):', text.substring(0, 100));
+      logger.debug('[TextExtractor] Final text preview (last 100):', text.substring(Math.max(0, text.length - 100)));
+
+      return text !== '' ? text : null;
+    },
     confidence: 0.95,
   },
   secondary: {
     selector: 'article[role="article"] div[lang][dir]',
     type: 'css',
-    extractor: (el) => el.textContent?.trim() || null,
+    extractor: (el) => {
+      // Same emoji handling as primary selector
+      let result = '';
+
+      const walkNodes = (node: Node) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          result += node.textContent || '';
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const element = node as Element;
+          if (element.tagName === 'IMG' && element.hasAttribute('alt')) {
+            result += element.getAttribute('alt') || '';
+          } else {
+            node.childNodes.forEach(walkNodes);
+          }
+        }
+      };
+
+      el.childNodes.forEach(walkNodes);
+      const text = result.trim();
+
+      return text !== '' ? text : null;
+    },
     confidence: 0.75,
   },
   tertiary: {
@@ -33,7 +97,28 @@ export const tweetTextSelector: SelectorConfig = {
     extractor: (el) => {
       // Find div with lang attribute within this container
       const textDiv = el.querySelector('div[lang]');
-      return textDiv?.textContent?.trim() || null;
+      if (!textDiv) return null;
+
+      // Same emoji handling as primary selector
+      let result = '';
+
+      const walkNodes = (node: Node) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          result += node.textContent || '';
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const element = node as Element;
+          if (element.tagName === 'IMG' && element.hasAttribute('alt')) {
+            result += element.getAttribute('alt') || '';
+          } else {
+            node.childNodes.forEach(walkNodes);
+          }
+        }
+      };
+
+      textDiv.childNodes.forEach(walkNodes);
+      const text = result.trim();
+
+      return text !== '' ? text : null;
     },
     confidence: 0.50,
   },
@@ -313,6 +398,57 @@ export const viewCountSelector: SelectorConfig = {
       return match ? match[1] : null;
     },
     confidence: 0.75,
+  },
+  tertiary: null,
+};
+
+/**
+ * Tweet URL selectors
+ */
+export const tweetUrlSelector: SelectorConfig = {
+  primary: {
+    selector: 'article[role="article"] a[href*="/status/"]',
+    type: 'css',
+    extractor: (el) => {
+      const href = el.getAttribute('href');
+      if (!href) return null;
+
+      // Extract tweet URL pattern: /{handle}/status/{tweetId}
+      const match = href.match(/^\/([A-Za-z0-9_]{1,15})\/status\/(\d+)/);
+      if (!match) return null;
+
+      // Construct full URL
+      return `https://x.com${href}`;
+    },
+    validator: (value) => {
+      // Validate URL format
+      return /^https:\/\/x\.com\/[A-Za-z0-9_]{1,15}\/status\/\d+/.test(value);
+    },
+    confidence: 0.95,
+  },
+  secondary: {
+    selector: 'time[datetime]',
+    type: 'css',
+    extractor: (el) => {
+      // Navigate up from time element to find parent link
+      let current: Element | null = el;
+      for (let i = 0; i < 5; i++) {
+        current = current.parentElement;
+        if (!current) break;
+
+        if (current.tagName === 'A' && current.hasAttribute('href')) {
+          const href = current.getAttribute('href');
+          if (href && href.includes('/status/')) {
+            return `https://x.com${href}`;
+          }
+        }
+      }
+      return null;
+    },
+    validator: (value) => {
+      return /^https:\/\/x\.com\/[A-Za-z0-9_]{1,15}\/status\/\d+/.test(value);
+    },
+    confidence: 0.85,
   },
   tertiary: null,
 };

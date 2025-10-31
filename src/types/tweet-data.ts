@@ -80,6 +80,9 @@ export interface TweetData {
   // Tweet content
   text: string | null;
 
+  // Tweet URL
+  url: string | null; // Direct link to tweet (e.g., "https://x.com/user/status/123")
+
   // Author information
   author: AuthorData;
 

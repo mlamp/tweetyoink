@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger';
+
 /**
  * Button injection logic with MutationObserver
  * Feature: 002-post-view-yoink
@@ -33,7 +35,7 @@ let pendingMutations: MutationRecord[] = [];
 export function initializeButtonInjector(
   onYoinkClick: (tweetElement: Element, button: HTMLButtonElement) => void
 ): void {
-  console.log('[TweetYoink] Initializing button injector');
+  logger.log('[TweetYoink] Initializing button injector');
 
   // Initial processing with delay to allow Twitter to render
   setTimeout(() => {
@@ -70,7 +72,7 @@ export function initializeButtonInjector(
     attributes: false,  // Exclude attributes for performance
   });
 
-  console.log('[TweetYoink] MutationObserver initialized');
+  logger.log('[TweetYoink] MutationObserver initialized');
 }
 
 /**
@@ -84,7 +86,7 @@ function processExistingTweets(
   const unprocessedTweets = document.querySelectorAll(`article[role="article"]:not([${PROCESSED_MARKER}])`);
 
   if (unprocessedTweets.length > 0) {
-    console.log(`[TweetYoink] Found ${unprocessedTweets.length} unprocessed tweets`);
+    logger.log(`[TweetYoink] Found ${unprocessedTweets.length} unprocessed tweets`);
 
     unprocessedTweets.forEach((article) => {
       injectYoinkButton(article, onYoinkClick);
@@ -118,7 +120,7 @@ function processPendingMutations(
   }
 
   if (newTweets.size > 0) {
-    console.log(`[TweetYoink] Processing ${newTweets.size} new tweets`);
+    logger.log(`[TweetYoink] Processing ${newTweets.size} new tweets`);
     for (const article of newTweets) {
       injectYoinkButton(article, onYoinkClick);
     }
@@ -145,7 +147,7 @@ export function injectYoinkButton(
   // Find anchor button: "More" button (primary) or Grok button (fallback)
   const anchorButton = findAnchorButton(tweetArticle);
   if (!anchorButton) {
-    console.warn('[TweetYoink] No anchor button found for tweet', tweetArticle);
+    logger.debug('[TweetYoink] No anchor button found for tweet', tweetArticle);
     // Remove marker so we can retry later when button renders
     tweetArticle.removeAttribute(PROCESSED_MARKER);
     return;
@@ -154,7 +156,7 @@ export function injectYoinkButton(
   // Traverse up to find action bar container
   const actionBar = findActionBarContainer(anchorButton);
   if (!actionBar) {
-    console.warn('[TweetYoink] No action bar container found', anchorButton);
+    logger.debug('[TweetYoink] No action bar container found', anchorButton);
     // Remove marker so we can retry later
     tweetArticle.removeAttribute(PROCESSED_MARKER);
     return;
@@ -177,7 +179,7 @@ export function injectYoinkButton(
     actionBar.appendChild(yoinkButton);
   }
 
-  console.log('[TweetYoink] Button injected successfully');
+  logger.log('[TweetYoink] Button injected successfully');
   // Marker stays on element to prevent future processing
 }
 
@@ -246,5 +248,5 @@ export function cleanupButtonInjector(): void {
     throttleTimeout = null;
   }
   pendingMutations = [];
-  console.log('[TweetYoink] Button injector cleaned up');
+  logger.log('[TweetYoink] Button injector cleaned up');
 }

@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger';
+
 /**
  * Polling service for async request status checking
  * Feature: 003-config-endpoint (P3)
@@ -17,12 +19,12 @@ export async function startPolling(requestId: string, tweetId: string): Promise<
   const config = await getConfig();
 
   if (!config.enablePolling) {
-    console.log('[TweetYoink] Polling disabled in config');
+    logger.log('[TweetYoink] Polling disabled in config');
     return;
   }
 
   if (!config.endpointUrl) {
-    console.error('[TweetYoink] Cannot poll: no endpoint URL configured');
+    logger.error('[TweetYoink] Cannot poll: no endpoint URL configured');
     return;
   }
 
@@ -53,8 +55,8 @@ export async function startPolling(requestId: string, tweetId: string): Promise<
     when: nextPollTime,
   });
 
-  console.log('[TweetYoink] Polling started for request:', requestId);
-  console.log('[TweetYoink] Polling URL:', pollingUrl);
+  logger.log('[TweetYoink] Polling started for request:', requestId);
+  logger.log('[TweetYoink] Polling URL:', pollingUrl);
 }
 
 /**
@@ -64,7 +66,7 @@ export async function pollRequest(requestId: string): Promise<void> {
   const request = await getActivePoll(requestId);
 
   if (!request) {
-    console.warn('[TweetYoink] No active poll found for:', requestId);
+    logger.warn('[TweetYoink] No active poll found for:', requestId);
     return;
   }
 
@@ -74,7 +76,7 @@ export async function pollRequest(requestId: string): Promise<void> {
 
   // Check if max duration exceeded
   if (elapsed > maxDuration) {
-    console.error('[TweetYoink] Polling timeout exceeded for:', requestId);
+    logger.error('[TweetYoink] Polling timeout exceeded for:', requestId);
     await removeActivePoll(requestId);
     return;
   }
@@ -82,7 +84,7 @@ export async function pollRequest(requestId: string): Promise<void> {
   // Get polling URL
   const pollingUrl = await getPollingUrl(requestId);
   if (!pollingUrl) {
-    console.error('[TweetYoink] No polling URL found for:', requestId);
+    logger.error('[TweetYoink] No polling URL found for:', requestId);
     await removeActivePoll(requestId);
     return;
   }
@@ -102,7 +104,7 @@ export async function pollRequest(requestId: string): Promise<void> {
     }
 
     // Make polling request
-    console.log(`[TweetYoink] Polling (attempt ${request.pollCount + 1}):`, pollingUrl);
+    logger.log(`[TweetYoink] Polling (attempt ${request.pollCount + 1}):`, pollingUrl);
 
     const response = await fetch(pollingUrl, {
       method: 'POST',
@@ -112,7 +114,7 @@ export async function pollRequest(requestId: string): Promise<void> {
     });
 
     if (!response.ok) {
-      console.error(`[TweetYoink] Poll failed with status ${response.status}`);
+      logger.error(`[TweetYoink] Poll failed with status ${response.status}`);
       await updatePollStatus(requestId, 'failed');
       await scheduleNextPoll(requestId, request.pollCount + 1);
       return;
@@ -122,8 +124,8 @@ export async function pollRequest(requestId: string): Promise<void> {
 
     // Handle response based on status
     if (data.status === 'completed') {
-      console.log('[TweetYoink] ✅ Async request completed:', requestId);
-      console.log('[TweetYoink] Server response:', JSON.stringify(data.result, null, 2));
+      logger.log('[TweetYoink] ✅ Async request completed:', requestId);
+      logger.log('[TweetYoink] Server response:', JSON.stringify(data.result, null, 2));
 
       // Notify all tabs about completion
       notifyTabsAboutCompletion(requestId, data.result);
@@ -133,13 +135,13 @@ export async function pollRequest(requestId: string): Promise<void> {
     }
 
     if (data.status === 'failed' || data.status === 'error') {
-      console.error('[TweetYoink] Async request failed:', data.error);
+      logger.error('[TweetYoink] Async request failed:', data.error);
       await removeActivePoll(requestId);
       return;
     }
 
     if (data.status === 'pending' || data.status === 'processing') {
-      console.log(`[TweetYoink] Request still ${data.status}...`);
+      logger.log(`[TweetYoink] Request still ${data.status}...`);
       // Map server status to client status using centralized function
       const clientStatus = mapPollingStatusToRequestStatus(data.status);
       await updatePollStatus(requestId, clientStatus);
@@ -149,11 +151,11 @@ export async function pollRequest(requestId: string): Promise<void> {
 
   } catch (error: any) {
     if (error.name === 'TimeoutError') {
-      console.error('[TweetYoink] Poll request timeout');
+      logger.error('[TweetYoink] Poll request timeout');
     } else if (error.name === 'TypeError') {
-      console.error('[TweetYoink] Network error during poll');
+      logger.error('[TweetYoink] Network error during poll');
     } else {
-      console.error('[TweetYoink] Poll error:', error);
+      logger.error('[TweetYoink] Poll error:', error);
     }
 
     // Schedule retry
@@ -202,7 +204,7 @@ async function scheduleNextPoll(requestId: string, pollCount: number): Promise<v
     when: nextPollTime,
   });
 
-  console.log(`[TweetYoink] Next poll in ${intervalSeconds.toFixed(1)}s (attempt ${pollCount + 1})`);
+  logger.log(`[TweetYoink] Next poll in ${intervalSeconds.toFixed(1)}s (attempt ${pollCount + 1})`);
 }
 
 /**
@@ -324,6 +326,6 @@ async function notifyTabsAboutCompletion(requestId: string, result: unknown): Pr
       }
     }
   } catch (error) {
-    console.error('[TweetYoink] Failed to notify tabs:', error);
+    logger.error('[TweetYoink] Failed to notify tabs:', error);
   }
 }

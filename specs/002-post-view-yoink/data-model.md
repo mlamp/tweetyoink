@@ -105,8 +105,8 @@ Array element representing a single media attachment (image, video, GIF).
 ```typescript
 interface MediaData {
   type: 'image' | 'video' | 'gif';
-  url: string;                  // Primary media URL
-  thumbnailUrl: string | null;  // Thumbnail for videos
+  url: string;                  // Primary media URL (may be blob: URL)
+  thumbnailUrl: string | null;  // Thumbnail for videos (may be blob: URL)
   altText: string | null;       // Accessibility alt text
   width: number | null;         // Native width in pixels
   height: number | null;        // Native height in pixels
@@ -115,10 +115,16 @@ interface MediaData {
 
 **Validation Rules**:
 - `type`: Must be one of three literal types
-- `url`: Required (non-null), must be valid URL
-- `thumbnailUrl`: Required for type='video', optional for others
+- `url`: Required (non-null), must be valid URL (http://, https://, or blob:)
+- `thumbnailUrl`: Required for type='video', optional for others (http://, https://, or blob:)
 - `altText`: Preserve exactly as provided (don't generate if missing)
 - `width`/`height`: Extract from DOM attributes if available
+
+**Chrome Extension Reality**:
+- Media captured from Twitter's DOM often uses `blob:` URLs (e.g., `blob:https://x.com/abc-123`)
+- Blob URLs are browser-generated temporary references to media data in memory
+- Servers receiving this data should be aware that blob: URLs cannot be fetched server-side
+- For server processing, consider extracting base64 data or requesting alt URLs
 
 ---
 
