@@ -303,8 +303,16 @@ export function loadOverlayStyles(): void {
  * Parse debug content JSON string
  * Feature: 005-debug-info-display (T007)
  *
- * @param content - JSON string from debug block
- * @returns Parsed DebugData or null if parsing fails
+ * Safely parses JSON string with validation:
+ * - Must be valid JSON (JSON.parse doesn't throw)
+ * - Must be an object (not array, null, or primitive)
+ * - Returns null on any validation failure
+ *
+ * Error handling: All parse errors are caught and logged, returning null.
+ * Caller should check for null and render error state accordingly.
+ *
+ * @param content - JSON string from debug block (item.content)
+ * @returns Parsed DebugData object, or null if parsing/validation fails
  */
 function parseDebugContent(content: string): DebugData | null {
   try {
@@ -327,8 +335,14 @@ function parseDebugContent(content: string): DebugData | null {
  * Render error state for malformed debug JSON
  * Feature: 005-debug-info-display (T008)
  *
+ * Displays a user-friendly error message with the raw JSON content as fallback.
+ * Used when parseDebugContent returns null (invalid JSON or non-object structure).
+ *
+ * Security: Raw content is rendered using textContent (not innerHTML) to prevent XSS.
+ * The raw content is shown in a scrollable <pre> limited to 200px height.
+ *
  * @param rawContent - Raw JSON string that failed to parse
- * @returns DOM element for debug error state
+ * @returns DOM element for debug error state (div.debug-block.debug-error)
  */
 function renderDebugError(rawContent: string): HTMLElement {
   const container = document.createElement('div');
@@ -356,9 +370,13 @@ function renderDebugError(rawContent: string): HTMLElement {
  * Render a collapsible debug section using native <details>/<summary> elements
  * Feature: 005-debug-info-display - User Story 2 (T014)
  *
+ * Uses native HTML5 <details>/<summary> elements for zero-JavaScript collapsibility.
+ * All sections start collapsed by default (no 'open' attribute).
+ * JSON data is safely rendered using textContent to prevent XSS.
+ *
  * @param title - Section title (e.g., "Orchestrator Decisions")
- * @param data - Section data (will be JSON stringified)
- * @returns DOM element for collapsible section
+ * @param data - Section data (will be JSON.stringify'd with 2-space indentation)
+ * @returns DOM element for collapsible section (details element with debug-section class)
  */
 function renderDebugSection(title: string, data: unknown): HTMLElement {
   const details = document.createElement('details');
@@ -380,8 +398,18 @@ function renderDebugSection(title: string, data: unknown): HTMLElement {
  * Render a debug content block with collapsible sections
  * Feature: 005-debug-info-display (T009, updated for T015-T019)
  *
- * @param item - Debug content item (metadata.is_debug === true)
- * @returns DOM element for debug block
+ * Parses the JSON content from a debug block and renders up to 4 collapsible sections:
+ * - Orchestrator Decisions: AI routing and analysis decisions
+ * - Agent Analyses: Individual agent outputs and structured analysis
+ * - Execution Metrics: Performance metrics (timing, tokens, temperature)
+ * - Request Metadata: Original tweet metadata (author, URL, media info)
+ *
+ * Sections are conditionally rendered - only present fields are shown.
+ * If parsing fails, renders error state with raw content fallback.
+ * If no sections present, renders empty state message.
+ *
+ * @param item - Debug content item (metadata.is_debug === true, content is JSON string)
+ * @returns DOM element for debug block (div.debug-block with title and sections)
  */
 function renderDebugBlock(item: DebugContentItem): HTMLElement {
   // Parse JSON content

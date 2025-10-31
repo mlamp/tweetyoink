@@ -77,9 +77,9 @@
 
 ### Implementation for User Story 3
 
-- [ ] T022 [US3] Verify environment detection in response-handler (import.meta.env.DEV check) filters debug blocks in production mode in src/services/response-handler.ts
-- [ ] T023 [US3] Add logger.debug statement when debug blocks are filtered in production mode in src/services/response-handler.ts
-- [ ] T024 [US3] Verify Vite build configuration tree-shakes debug code in production bundle
+- [X] T022 [US3] Verify environment detection in response-handler (import.meta.env.DEV check) filters debug blocks in production mode in src/services/response-handler.ts
+- [X] T023 [US3] Add logger.debug statement when debug blocks are filtered in production mode in src/services/response-handler.ts
+- [X] T024 [US3] Verify Vite build configuration tree-shakes debug code in production bundle
 
 **Checkpoint**: User Story 3 complete - Production builds have zero debug display, dev builds show debug info
 
@@ -89,16 +89,16 @@
 
 **Purpose**: Final validation and quality checks
 
-- [ ] T025 [P] Add type guards (isDebugContentItem, hasOrchestratorDecisions, hasAgentAnalyses, etc.) in src/types/overlay.ts
-- [ ] T026 [P] Add JSDoc comments to renderDebugBlock and helper functions in src/ui/overlay-renderer.ts
-- [ ] T027 Validate all logger calls use logger.debug or logger.warn (no direct console usage)
-- [ ] T028 Run TypeScript type-check (npm run type-check or tsc --noEmit) and fix any errors
-- [ ] T029 Test with large debug block (80-100KB JSON) to verify performance under 100ms render time
-- [ ] T030 Test with malformed JSON to verify error state renders correctly
-- [ ] T031 Test with partial debug data (missing sections) to verify graceful degradation
-- [ ] T032 Test with multiple debug blocks in single response to verify all render sequentially
-- [ ] T033 Run production build (npm run build) and verify bundle size increase is minimal
-- [ ] T034 Verify all success criteria SC-001 through SC-007 from spec.md
+- [X] T025 [P] Add type guards (isDebugContentItem, hasOrchestratorDecisions, hasAgentAnalyses, etc.) in src/types/overlay.ts
+- [X] T026 [P] Add JSDoc comments to renderDebugBlock and helper functions in src/ui/overlay-renderer.ts
+- [X] T027 Validate all logger calls use logger.debug or logger.warn (no direct console usage)
+- [X] T028 Run TypeScript type-check (npm run type-check or tsc --noEmit) and fix any errors
+- [X] T029 Test with large debug block (80-100KB JSON) to verify performance under 100ms render time
+- [X] T030 Test with malformed JSON to verify error state renders correctly
+- [X] T031 Test with partial debug data (missing sections) to verify graceful degradation
+- [X] T032 Test with multiple debug blocks in single response to verify all render sequentially
+- [X] T033 Run production build (npm run build) and verify bundle size increase is minimal
+- [X] T034 Verify all success criteria SC-001 through SC-007 from spec.md
 
 ---
 
