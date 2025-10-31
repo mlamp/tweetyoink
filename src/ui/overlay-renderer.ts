@@ -10,6 +10,17 @@ import { logger } from '../utils/logger';
 import type { ResponseContentItem, OverlayConfig } from '../types/overlay';
 
 /**
+ * Escape HTML characters to prevent XSS injection
+ * @param text - Raw text that may contain HTML characters
+ * @returns Escaped text safe for innerHTML
+ */
+function escapeHtml(text: string): string {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+/**
  * Render overlay to DOM and return element references
  *
  * @param contentItems - Array of content items to render
@@ -170,7 +181,10 @@ function createContentArea(): HTMLElement {
 function createEmptyStateMessage(message: string): HTMLElement {
   const messageElement = document.createElement('div');
   messageElement.className = 'tweetyoink-overlay-empty-state';
-  messageElement.textContent = message;
+  // Escape HTML and preserve newlines (same as content items for consistency)
+  const escapedText = escapeHtml(message);
+  const formattedText = escapedText.replace(/\n/g, '<br>');
+  messageElement.innerHTML = formattedText;
   return messageElement;
 }
 
@@ -213,8 +227,11 @@ function renderContentItem(item: ResponseContentItem): HTMLElement {
 
     itemElement.appendChild(img);
   } else {
-    // Text content - use textContent for XSS safety (not innerHTML)
-    itemElement.textContent = item.content;
+    // Text content - escape HTML and convert newlines to <br> for formatting
+    // This is XSS-safe because we escape all HTML first, then only add <br> tags
+    const escapedText = escapeHtml(item.content);
+    const formattedText = escapedText.replace(/\n/g, '<br>');
+    itemElement.innerHTML = formattedText;
   }
 
   // Add data attributes for debugging
