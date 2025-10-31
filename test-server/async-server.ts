@@ -170,15 +170,56 @@ async function handleStatusPost(req: IncomingMessage, res: ServerResponse) {
     if (now >= request.completedAt) {
       console.log(`✅ Request ${requestId} COMPLETED - returning tweet data\n`);
 
-      // Return completed response with original tweet data
-      sendJson(res, 200, {
-        status: 'completed',
-        result: {
-          message: 'Tweet processing completed',
-          processedAt: new Date().toISOString(),
-          originalData: request.tweetData,
+      // Return completed response with content items array showing actual tweet data
+      const contentItems = [];
+
+      // Item 1: Author information
+      const authorHandle = request.tweetData.author?.handle || 'unknown';
+      const authorDisplay = request.tweetData.author?.displayName || 'Unknown User';
+      const isVerified = request.tweetData.author?.isVerified ? '✓ Verified' : '';
+      contentItems.push({
+        type: 'text',
+        content: `Author: @${authorHandle} (${authorDisplay}) ${isVerified}`,
+        metadata: {
+          title: 'Tweet Author',
+          timestamp: new Date().toISOString(),
           processingDuration: Math.floor((now - request.createdAt) / 1000),
         },
+      });
+
+      // Item 2: Tweet content (full text, no truncation)
+      const tweetText = request.tweetData.text || '[No text content]';
+      contentItems.push({
+        type: 'text',
+        content: tweetText,
+        metadata: {
+          title: 'Tweet Content',
+          length: tweetText.length,
+          processingDuration: Math.floor((now - request.createdAt) / 1000),
+        },
+      });
+
+      // Item 3: Media - add actual images
+      if (request.tweetData.media && request.tweetData.media.length > 0) {
+        request.tweetData.media.forEach((mediaItem: any, index: number) => {
+          if (mediaItem.type === 'image' && mediaItem.url) {
+            contentItems.push({
+              type: 'image',
+              content: mediaItem.url,
+              metadata: {
+                title: mediaItem.altText || `Image ${index + 1}`,
+                altText: mediaItem.altText,
+                index: index,
+                processingDuration: Math.floor((now - request.createdAt) / 1000),
+              },
+            });
+          }
+        });
+      }
+
+      sendJson(res, 200, {
+        status: 'completed',
+        result: contentItems,
       });
 
       // Clean up completed request

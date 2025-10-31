@@ -1,29 +1,25 @@
 <!--
   SYNC IMPACT REPORT
   ==================
-  Version Change: [INITIAL] → 1.0.0
+  Version Change: 1.0.0 → 1.1.0
 
   Modified Principles:
-  - New: I. Separation of Concerns (Extension and server are separate repositories)
-  - New: II. LLM-First Data Structure (DOM parsing over screenshots)
-  - New: III. User Control & Privacy (User explicitly triggers captures)
-  - New: IV. TypeScript-First Development (Type safety over flexibility)
-  - New: V. Defensive DOM Extraction (Fallback selectors and graceful degradation)
+  - New: VI. Logging Discipline (Development vs Production logging strategy)
 
   Added Sections:
-  - Architecture Standards (Technology stack requirements)
-  - Development Workflow (TDD approach, testing gates)
+  - Principle VI: Logging Discipline with implementation rules
 
-  Removed Sections: None (initial version)
+  Removed Sections: None
 
   Templates Requiring Updates:
-  ✅ plan-template.md - Validated: Constitution Check section can reference new principles
-  ✅ spec-template.md - Validated: User stories align with User Control principle
-  ✅ tasks-template.md - Validated: Task structure supports TypeScript testing patterns
+  ✅ plan-template.md - Validated: Constitution Check section can reference new logging principle
+  ✅ spec-template.md - Validated: No changes needed (logging is implementation detail)
+  ✅ tasks-template.md - Validated: No changes needed (logging is implementation detail)
+  ⚠ src/utils/logger.ts - REQUIRES UPDATE: Must be modified to allow error/warn in production
 
   Follow-up TODOs:
-  - Ratification date should be confirmed by project owner (currently set to 2025-10-23)
-  - Consider adding specific performance thresholds (currently in Success Criteria section of docs/Constitution.md)
+  - Update src/utils/logger.ts to implement production error/warning logging per Principle VI
+  - Consider adding telemetry/error reporting service for production error aggregation
 -->
 
 # TweetYoink Constitution
@@ -115,6 +111,34 @@
 - All selector failures MUST be logged with telemetry
 - Confidence scores MUST reflect which selector tier was used
 
+### VI. Logging Discipline
+
+**All logging MUST use the logger wrapper; production MUST only log errors and warnings.**
+
+**Rationale:**
+- Development needs verbose logging for debugging and troubleshooting
+- Production builds must minimize console noise and performance overhead
+- Critical errors and warnings must be visible in production for user support
+- Consistent logging interface prevents direct console usage proliferation
+
+**Implementation Rules:**
+- ALL code MUST use `logger` from `src/utils/logger.ts` (never `console.*` directly)
+- Development mode (`import.meta.env.DEV === true`):
+  - `logger.log()`, `logger.debug()`, `logger.info()` → outputs to console
+  - `logger.warn()`, `logger.error()` → outputs to console
+- Production mode (`import.meta.env.DEV === false`):
+  - `logger.log()`, `logger.debug()`, `logger.info()` → no-op (stripped)
+  - `logger.warn()` → outputs to console.warn (visible to users/support)
+  - `logger.error()` → outputs to console.error (visible to users/support)
+- Exception: Build-time logging (e.g., Vite config) may use console directly
+- Code review MUST reject direct `console.*` usage in application code
+
+**Benefits:**
+- Clean console in production builds (no debug spam)
+- Production errors remain visible for troubleshooting
+- Single point of control for future enhancements (e.g., remote error tracking)
+- Performance: debug/info logs completely removed from production bundle
+
 ## Architecture Standards
 
 ### Technology Stack Requirements
@@ -124,12 +148,15 @@
 - **Build Tool:** Vite with vite-plugin-web-extension
 - **Chrome Extension:** Manifest V3 (service worker architecture)
 - **Testing Framework:** Choice of Vitest, Jest, or Playwright (if tests requested)
+- **Logging:** Custom logger wrapper (`src/utils/logger.ts`)
 
 **Repository Structure:**
 ```
 src/
 ├── types/          # TypeScript interfaces and types
 ├── extractors/     # DOM extraction logic with fallbacks
+├── utils/
+│   └── logger.ts   # Logging wrapper (principle VI)
 ├── content-script.ts
 ├── service-worker.ts
 └── popup/          # Settings UI
@@ -218,19 +245,21 @@ specs/[###-feature]/   # Feature planning and implementation tracking
 - TypeScript compilation MUST succeed with zero errors
 - Linter MUST pass with zero warnings (configure in .eslintrc)
 - Manual smoke test on Twitter/X (capture a tweet successfully)
+- No direct `console.*` usage in application code (use `logger` wrapper)
 
 **Before Releasing:**
 - All functional requirements MUST be validated manually
 - Selector health check MUST pass on current Twitter/X version
 - Settings persistence MUST be verified across browser restarts
 - Rate limiting MUST be verified to enforce limits
+- Production build MUST only log errors/warnings (verify console output)
 
 ### Selector Maintenance
 
 **Monitoring:**
 - Critical selectors tracked: `[data-testid="tweet"]`, `[data-testid="tweetText"]`, `[data-testid="User-Names"]`, `[data-testid="tweetTextarea_0"]`
 - Health check runs on extension load
-- Selector failures logged to telemetry
+- Selector failures logged to telemetry via `logger.error()`
 
 **Update Cycle:**
 1. Extension detects selector failure (via monitoring or user reports)
@@ -264,10 +293,11 @@ This constitution MAY be amended when:
 ### Compliance Verification
 
 **All PRs/reviews MUST:**
-- Verify alignment with Core Principles (I-V)
+- Verify alignment with Core Principles (I-VI)
 - Check TypeScript strict mode compliance
 - Validate defensive extraction patterns used
 - Confirm user control/privacy requirements met
+- Verify logger wrapper usage (no direct console usage)
 
 **Complexity MUST be justified:**
 - New dependencies require documented rationale
@@ -281,4 +311,4 @@ For implementation-specific guidance beyond this constitution, refer to:
 - `docs/API_CONTRACT.md` - Backend API specification (if created)
 - `.specify/templates/` - Feature planning templates
 
-**Version**: 1.0.0 | **Ratified**: 2025-10-23 | **Last Amended**: 2025-10-23
+**Version**: 1.1.0 | **Ratified**: 2025-10-23 | **Last Amended**: 2025-10-31

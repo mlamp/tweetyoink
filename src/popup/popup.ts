@@ -1,11 +1,13 @@
+import { logger } from '../utils/logger';
+
 // TweetYoink Popup Script
 // Handles the extension popup UI
 
-console.log('[TweetYoink Popup] Opened');
+logger.log('[TweetYoink Popup] Opened');
 
 // Initialize popup
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('[TweetYoink Popup] DOM loaded and ready');
+  logger.log('[TweetYoink Popup] DOM loaded and ready');
 
   // Future: Add backend configuration UI
   // Future: Add capture statistics display

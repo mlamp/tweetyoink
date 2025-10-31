@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger';
+
 /**
  * Selector fallback chain for defensive DOM extraction
  * Feature: 002-post-view-yoink
@@ -159,7 +161,7 @@ export class SelectorFallbackChain {
       return { value: extractedValue as T };
     } catch (error) {
       // Log error but don't throw - defensive extraction
-      console.warn(
+      logger.warn(
         `[TweetYoink] Extraction failed for ${tier} selector: ${strategy.selector}`,
         error
       );
@@ -297,7 +299,7 @@ export class SelectorFallbackChain {
 
       return { values };
     } catch (error) {
-      console.warn(
+      logger.warn(
         `[TweetYoink] Multiple extraction failed for ${tier} selector: ${strategy.selector}`,
         error
       );

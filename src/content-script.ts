@@ -1,8 +1,13 @@
+import { logger } from './utils/logger';
+
 /**
  * TweetYoink Content Script
- * Feature: 002-post-view-yoink, 003-config-endpoint
+ * Feature: 002-post-view-yoink, 003-config-endpoint, 004-response-overlay
  * Runs on Twitter/X pages to inject Yoink buttons and extract tweet data
  */
+
+// Import overlay CSS
+import './ui/overlay.css';
 
 import { initializeButtonInjector } from './ui/button-injector';
 import { disableButton, enableButton, showButtonError } from './ui/yoink-button';
@@ -11,15 +16,17 @@ import { isExtractionSuccess } from './types/tweet-data';
 import { ERROR_DISPLAY_DURATION_MS } from './ui/constants';
 import { postTweetData, HttpError, TimeoutError, NetworkError, ConfigError } from './services/post-service';
 import { isAsyncResponse } from './types/config';
+import { parseServerResponse, getEmptyStateMessage } from './services/response-handler';
+import { showOverlay, showEmptyStateOverlay } from './ui/overlay-manager';
 
 // Check if we're on Twitter or X domain
 const currentDomain = window.location.hostname;
 const isTwitter = currentDomain === 'twitter.com' || currentDomain === 'x.com';
 
 if (!isTwitter) {
-  console.warn('[TweetYoink] Not on Twitter/X domain:', currentDomain);
+  logger.warn('[TweetYoink] Not on Twitter/X domain:', currentDomain);
 } else {
-  console.log('[TweetYoink] Content script loaded on', window.location.href);
+  logger.log('[TweetYoink] Content script loaded on', window.location.href);
 
   // Initialize after DOM is ready
   if (document.readyState === 'loading') {
@@ -33,7 +40,7 @@ if (!isTwitter) {
  * Initializes the TweetYoink extension
  */
 function initialize(): void {
-  console.log('[TweetYoink] Initializing...');
+  logger.log('[TweetYoink] Initializing...');
 
   // Start button injector with click handler
   initializeButtonInjector(handleYoinkClick);
@@ -41,8 +48,21 @@ function initialize(): void {
   // Listen for async completion messages from service worker
   chrome.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
     if (message.type === 'ASYNC_COMPLETED') {
-      console.log('[TweetYoink] ✅ Async request completed:', message.requestId);
-      console.log('[TweetYoink] Server response:', JSON.stringify(message.result, null, 2));
+      logger.log('[TweetYoink] ✅ Async request completed:', message.requestId);
+      logger.log('[TweetYoink] Server response:', JSON.stringify(message.result, null, 2));
+
+      // Parse response for overlay display
+      const response = { status: 'completed' as const, result: message.result };
+      const parsed = parseServerResponse(response);
+
+      if (parsed.hasContent) {
+        logger.log(`[TweetYoink] ${parsed.contentItems.length} items ready for overlay display`);
+        showOverlay(parsed.contentItems, message.requestId);
+      } else {
+        logger.log('[TweetYoink] No displayable content:', parsed.emptyReason);
+        logger.log('[TweetYoink] Message:', getEmptyStateMessage(parsed.emptyReason));
+        // For now, just log - User Story 3 will add empty state overlay
+      }
     }
   });
 }
@@ -53,7 +73,7 @@ function initialize(): void {
  * @param button - The clicked Yoink button
  */
 async function handleYoinkClick(tweetElement: Element, button: HTMLButtonElement): Promise<void> {
-  console.log('[TweetYoink] Yoink button clicked');
+  logger.log('[TweetYoink] Yoink button clicked');
 
   // Disable button during extraction and POST
   disableButton(button);
@@ -64,7 +84,7 @@ async function handleYoinkClick(tweetElement: Element, button: HTMLButtonElement
 
     if (!isExtractionSuccess(result)) {
       // Log error
-      console.error('[TweetYoink] Extraction failed:', result.error);
+      logger.error('[TweetYoink] Extraction failed:', result.error);
 
       // Show error feedback
       showButtonError(button);
@@ -75,7 +95,7 @@ async function handleYoinkClick(tweetElement: Element, button: HTMLButtonElement
     }
 
     // Log extracted data to console with nice formatting
-    console.log('[TweetYoink] Tweet captured:', JSON.stringify(result.data, null, 2));
+    logger.log('[TweetYoink] Tweet captured:', JSON.stringify(result.data, null, 2));
 
     // POST tweet data to configured endpoint
     try {
@@ -83,17 +103,34 @@ async function handleYoinkClick(tweetElement: Element, button: HTMLButtonElement
 
       if (isAsyncResponse(response)) {
         // Async response - polling will be handled automatically by service worker
-        console.log('[TweetYoink] Async request initiated:', response.requestId);
+        logger.log('[TweetYoink] Async request initiated:', response.requestId);
         if (response.estimatedDuration) {
-          console.log(`[TweetYoink] Estimated duration: ${response.estimatedDuration}s`);
+          logger.log(`[TweetYoink] Estimated duration: ${response.estimatedDuration}s`);
         }
-        console.log('[TweetYoink] Service worker will poll for results automatically');
+        logger.log('[TweetYoink] Service worker will poll for results automatically');
       } else if (response.status === 'completed') {
         // Synchronous success
-        console.log('[TweetYoink] Server response:', response.result);
+        logger.log('[TweetYoink] Server response:', response.result);
+
+        // Parse response for overlay display
+        const parsed = parseServerResponse(response);
+
+        if (parsed.hasContent) {
+          logger.log(`[TweetYoink] ${parsed.contentItems.length} items ready for overlay display`);
+          // Generate associated ID from author handle and timestamp
+          const tweetId = `${result.data.author.handle || 'unknown'}_${result.data.timestamp || Date.now()}`;
+          showOverlay(parsed.contentItems, tweetId);
+        } else {
+          logger.log('[TweetYoink] No displayable content:', parsed.emptyReason);
+          const emptyMessage = getEmptyStateMessage(parsed.emptyReason);
+          logger.log('[TweetYoink] Showing empty state message:', emptyMessage);
+          // Generate associated ID from author handle and timestamp
+          const tweetId = `${result.data.author.handle || 'unknown'}_${result.data.timestamp || Date.now()}`;
+          showEmptyStateOverlay(emptyMessage, tweetId);
+        }
       } else if (response.status === 'failed' || response.status === 'error') {
         // Server returned error
-        console.error('[TweetYoink] Server error:', response.error);
+        logger.error('[TweetYoink] Server error:', response.error);
         showButtonError(button);
         setTimeout(() => enableButton(button), ERROR_DISPLAY_DURATION_MS);
         return;
@@ -105,17 +142,17 @@ async function handleYoinkClick(tweetElement: Element, button: HTMLButtonElement
     } catch (error) {
       if (error instanceof ConfigError) {
         // No endpoint configured - just log locally (this is valid behavior)
-        console.log('[TweetYoink] No endpoint configured - tweet data logged to console only');
+        logger.log('[TweetYoink] No endpoint configured - tweet data logged to console only');
         enableButton(button);
         return;
       } else if (error instanceof HttpError) {
-        console.error(`[TweetYoink] HTTP error: ${error.message}`);
+        logger.error(`[TweetYoink] HTTP error: ${error.message}`);
       } else if (error instanceof TimeoutError) {
-        console.error(`[TweetYoink] Request timeout: ${error.message}`);
+        logger.error(`[TweetYoink] Request timeout: ${error.message}`);
       } else if (error instanceof NetworkError) {
-        console.error(`[TweetYoink] Network error: ${error.message}`);
+        logger.error(`[TweetYoink] Network error: ${error.message}`);
       } else {
-        console.error('[TweetYoink] POST error:', error);
+        logger.error('[TweetYoink] POST error:', error);
       }
 
       // Show error feedback for POST failures
@@ -124,7 +161,7 @@ async function handleYoinkClick(tweetElement: Element, button: HTMLButtonElement
     }
 
   } catch (error) {
-    console.error('[TweetYoink] Unexpected error:', error);
+    logger.error('[TweetYoink] Unexpected error:', error);
     showButtonError(button);
     setTimeout(() => enableButton(button), ERROR_DISPLAY_DURATION_MS);
   }

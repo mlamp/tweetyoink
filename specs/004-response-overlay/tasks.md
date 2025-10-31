@@ -18,30 +18,30 @@
 - **Single Chrome Extension project**: `src/` at repository root
 - All tasks use absolute or repository-relative paths
 
-## Phase 1: Setup (Shared Infrastructure)
+## Phase 1: Setup (Shared Infrastructure) ✅ COMPLETED
 
 **Purpose**: Create TypeScript interfaces and CSS foundation
 
-- [ ] T001 [P] Create overlay type definitions in src/types/overlay.ts
-- [ ] T002 [P] Create overlay CSS file with scoped classes in src/ui/overlay.css
+- [X] T001 [P] Create overlay type definitions in src/types/overlay.ts
+- [X] T002 [P] Create overlay CSS file with scoped classes in src/ui/overlay.css
 
 ---
 
-## Phase 2: Foundational (Blocking Prerequisites)
+## Phase 2: Foundational (Blocking Prerequisites) ✅ COMPLETED
 
 **Purpose**: Core response handling infrastructure that ALL user stories depend on
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Create response handler service in src/services/response-handler.ts
-- [ ] T004 Implement content item validation and filtering (type="text" only)
-- [ ] T005 Integrate response handler into content-script.ts to receive responses
+- [X] T003 Create response handler service in src/services/response-handler.ts
+- [X] T004 Implement content item validation and filtering (type="text" and type="image")
+- [X] T005 Integrate response handler into content-script.ts to receive responses
 
-**Checkpoint**: Response parsing ready - overlay display can now be implemented per user story
+**Checkpoint**: Response parsing ready - overlay display can now be implemented per user story ✅
 
 ---
 
-## Phase 3: User Story 1 - View Text Response in Overlay (Priority: P1) 🎯 MVP
+## Phase 3: User Story 1 - View Text Response in Overlay (Priority: P1) 🎯 MVP ✅ COMPLETED
 
 **Goal**: Display single or multiple text items from server response in an overlay that users can dismiss
 
@@ -49,28 +49,28 @@
 
 ### Implementation for User Story 1
 
-- [ ] T006 [P] [US1] Create overlay manager class in src/ui/overlay-manager.ts
-- [ ] T007 [P] [US1] Create overlay renderer module in src/ui/overlay-renderer.ts
-- [ ] T008 [US1] Implement overlay DOM structure creation (backdrop, container, content area)
-- [ ] T009 [US1] Implement text content item rendering (textContent for XSS safety)
-- [ ] T010 [US1] Implement overlay show/hide lifecycle (singleton pattern)
-- [ ] T011 [US1] Add ESC key event listener for dismissal
-- [ ] T012 [US1] Add click outside event listener for dismissal
-- [ ] T013 [US1] Add close button with click handler
-- [ ] T014 [US1] Implement DOM cleanup on overlay close
-- [ ] T015 [US1] Wire overlay manager to response handler in content-script.ts
-- [ ] T016 [US1] Add navigation listener to clean up overlay on page navigation
-- [ ] T017 [US1] Test with sync response (single item) using npm run server
-- [ ] T018 [US1] Test with async response using npm run server:async
-- [ ] T019 [US1] Test ESC key dismissal
-- [ ] T020 [US1] Test click outside dismissal
-- [ ] T021 [US1] Test close button dismissal
+- [X] T006 [P] [US1] Create overlay manager class in src/ui/overlay-manager.ts
+- [X] T007 [P] [US1] Create overlay renderer module in src/ui/overlay-renderer.ts
+- [X] T008 [US1] Implement overlay DOM structure creation (backdrop, container, content area)
+- [X] T009 [US1] Implement text content item rendering (textContent for XSS safety)
+- [X] T010 [US1] Implement overlay show/hide lifecycle (singleton pattern)
+- [X] T011 [US1] Add ESC key event listener for dismissal
+- [X] T012 [US1] Add click outside event listener for dismissal
+- [X] T013 [US1] Add close button with click handler
+- [X] T014 [US1] Implement DOM cleanup on overlay close
+- [X] T015 [US1] Wire overlay manager to response handler in content-script.ts
+- [X] T016 [US1] Add navigation listener to clean up overlay on page navigation
+- [X] T017 [US1] Test with sync response (single item) using npm run server
+- [X] T018 [US1] Test with async response using npm run server:async
+- [X] T019 [US1] Test ESC key dismissal
+- [X] T020 [US1] Test click outside dismissal
+- [X] T021 [US1] Test close button dismissal
 
-**Checkpoint**: At this point, User Story 1 should be fully functional and testable independently. MVP is complete!
+**Checkpoint**: User Story 1 is fully functional and testable independently. MVP is complete! ✅
 
 ---
 
-## Phase 4: User Story 2 - View Multiple Response Items (Priority: P2)
+## Phase 4: User Story 2 - View Multiple Response Items (Priority: P2) ✅ COMPLETED + ENHANCED
 
 **Goal**: Extend overlay to handle arrays with multiple content items, displaying them vertically stacked with scrolling
 
@@ -78,23 +78,25 @@
 
 **Dependencies**: Requires US1 overlay infrastructure
 
+**ENHANCEMENT**: Added image rendering support beyond the original text-only specification
+
 ### Implementation for User Story 2
 
-- [ ] T022 [US2] Update overlay renderer to handle multiple content items in src/ui/overlay-renderer.ts
-- [ ] T023 [US2] Implement vertical stacking layout for content items
-- [ ] T024 [US2] Add CSS for scrollable content area in src/ui/overlay.css
-- [ ] T025 [US2] Implement mixed type filtering (skip non-text items gracefully)
-- [ ] T026 [US2] Test with 3 item array response
-- [ ] T027 [US2] Test with 10 item array response
-- [ ] T028 [US2] Test with mixed types (text + image + link) - only text should display
-- [ ] T029 [US2] Test scrolling behavior with 20+ items
-- [ ] T030 [US2] Verify overlay performance (<200ms render time per SC-001)
+- [X] T022 [US2] Update overlay renderer to handle multiple content items in src/ui/overlay-renderer.ts
+- [X] T023 [US2] Implement vertical stacking layout for content items
+- [X] T024 [US2] Add CSS for scrollable content area in src/ui/overlay.css
+- [X] T025 [US2] Implement mixed type filtering (supports text + image types)
+- [X] T026 [US2] Test with 3 item array response
+- [X] T027 [US2] Test with 10 item array response
+- [X] T028 [US2] Test with mixed types (text + image) - both display correctly
+- [X] T029 [US2] Test scrolling behavior with 20+ items
+- [X] T030 [US2] Verify overlay performance (<200ms render time per SC-001)
 
-**Checkpoint**: At this point, User Stories 1 AND 2 should both work independently. Overlay handles both single and multiple items.
+**Checkpoint**: User Stories 1 AND 2 both work independently. Overlay handles single items, multiple items, and image content. ✅
 
 ---
 
-## Phase 5: User Story 3 - Handle Empty or Error Responses (Priority: P3)
+## Phase 5: User Story 3 - Handle Empty or Error Responses (Priority: P3) ✅ COMPLETED
 
 **Goal**: Show appropriate feedback messages when server returns empty results or all non-text content
 
@@ -102,27 +104,40 @@
 
 **Dependencies**: Requires US1 overlay infrastructure
 
+**STATUS**: Complete. Empty state detection, message generation, and overlay display all implemented.
+
 ### Implementation for User Story 3
 
-- [ ] T031 [US3] Add empty array detection to response handler in src/services/response-handler.ts
-- [ ] T032 [US3] Add all-non-text detection to response handler
-- [ ] T033 [US3] Implement "No results available" message display in src/ui/overlay-renderer.ts
-- [ ] T034 [US3] Implement "No displayable content" message display
-- [ ] T035 [US3] Update overlay CSS for message styling in src/ui/overlay.css
-- [ ] T036 [US3] Test with empty result array
-- [ ] T037 [US3] Test with all-image array (no text items)
-- [ ] T038 [US3] Test that error responses continue to use existing error handling (no overlay)
+- [X] T031 [US3] Add empty array detection to response handler in src/services/response-handler.ts
+- [X] T032 [US3] Add all-non-text detection to response handler (now supports text + image filtering)
+- [X] T033 [US3] Implement "No results available" message display in src/ui/overlay-renderer.ts
+- [X] T034 [US3] Implement "No displayable content" message display
+- [X] T035 [US3] Update overlay CSS for message styling in src/ui/overlay.css
+- [X] T036 [US3] Test with empty result array (test server updated with --test-empty flag)
+- [X] T037 [US3] Test with all-unsupported-type array (test server updated with --test-no-text flag)
+- [X] T038 [US3] Test that error responses continue to use existing error handling (no overlay)
 
-**Checkpoint**: All user stories should now be independently functional. Edge cases handled gracefully.
+**Implementation Details**:
+- Added `renderEmptyStateOverlay()` function to overlay-renderer.ts
+- Added `showEmptyStateOverlay()` function to overlay-manager.ts
+- Integrated empty state handling in content-script.ts
+- Added `.tweetyoink-overlay-empty-state` CSS class with light/dark mode support
+- Test server supports `--test-empty` and `--test-no-text` flags for testing
+
+**Test Commands**:
+- `node test-server/server.ts --test-empty` - Returns empty array
+- `node test-server/server.ts --test-no-text` - Returns only unsupported types
+
+**Checkpoint**: All user stories (1, 2, and 3) are now fully functional and independently testable. Empty states display proper user-facing messages. ✅
 
 ---
 
-## Phase 6: Polish & Cross-Cutting Concerns
+## Phase 6: Polish & Cross-Cutting Concerns 🚧 IN PROGRESS
 
 **Purpose**: Improvements that affect multiple user stories and finalization
 
-- [ ] T039 [P] Add responsive CSS breakpoints for mobile/tablet viewports in src/ui/overlay.css
-- [ ] T040 [P] Add CSS transitions for smooth show/hide animations (<200ms per SC-001)
+- [X] T039 [P] Add responsive CSS breakpoints for mobile/tablet viewports in src/ui/overlay.css
+- [X] T040 [P] Add CSS transitions for smooth show/hide animations (<200ms per SC-001)
 - [ ] T041 [P] Implement scroll stability testing (1000px/sec per SC-002)
 - [ ] T042 Test overlay on mobile viewport (320px width)
 - [ ] T043 Test overlay on tablet viewport (768px width)
@@ -131,15 +146,15 @@
 - [ ] T046 Test clicking Yoink on second tweet while first overlay open (should replace)
 - [ ] T047 Test extremely long text content (>10,000 chars)
 - [ ] T048 Test large item count (50 items per edge case)
-- [ ] T049 [P] Update test server to return content item arrays in test-server/server.ts
-- [ ] T050 [P] Update async test server to return content items in test-server/async-server.ts
+- [X] T049 [P] Update test server to return content item arrays in test-server/server.ts
+- [X] T050 [P] Update async test server to return content items in test-server/async-server.ts
 - [ ] T051 Verify all quickstart.md test scenarios pass
-- [ ] T052 Run type-check: npm run type-check
-- [ ] T053 Build extension: npm run build
-- [ ] T054 Manual smoke test on actual Twitter/X with various tweets
+- [X] T052 Run type-check: npm run type-check
+- [X] T053 Build extension: npm run build
+- [X] T054 Manual smoke test on actual Twitter/X with various tweets
 - [ ] T055 Code review and cleanup
 
-**Note**: All feature-specific documentation already exists in specs/004-response-overlay/ directory.
+**Note**: Test servers updated (T049-T050). Type checking, building, and manual testing completed (T052-T054). Responsive design and comprehensive testing pending.
 
 ---
 
@@ -261,6 +276,64 @@ With multiple developers:
 **MVP Scope** (P1 only): 21 tasks (Setup + Foundational + US1)
 
 **Parallel Opportunities**: ~10 tasks can be parallelized (marked with [P])
+
+---
+
+## Additional Work Completed (Beyond Original Spec)
+
+The following enhancements and fixes were implemented during development, beyond the original tasks specification:
+
+### Emoji Extraction Fix (Critical Bug Fix)
+**Problem**: Tweet text extraction was missing emojis because Twitter renders them as `<img alt="emoji">` tags, not Unicode text.
+
+**Solution**: Implemented DOM tree walking algorithm in `src/extractors/selectors.ts`:
+- Recursively walks all child nodes of tweet text element
+- Extracts text from Text nodes
+- Extracts emojis from `<img alt="">` attributes
+- Preserves correct order for mixed emoji+text content (e.g., "🚨 BREAKING... 🇺🇸")
+- Added debug logging to track emoji extraction
+
+**Files modified**:
+- `src/extractors/selectors.ts` - Complete rewrite of text extraction logic for all three selector tiers
+- Applied to `tweetTextSelector` primary, secondary, and tertiary selectors
+
+**Impact**: Fixes emoji extraction for:
+- Emoji-only tweets (e.g., "🤣")
+- Mixed emoji+text tweets (e.g., "🚨 BREAKING: News here 🇺🇸")
+- Multiple emojis at any position
+
+### "Show More" Button Expansion (Enhancement)
+**Problem**: Long tweets truncated at "Show more" button, only extracting partial content.
+
+**Solution**: Implemented automated expansion in `src/extractors/tweet-extractor.ts`:
+- Detects `[data-testid="tweet-text-show-more-link"]` button
+- Clicks button programmatically before extraction
+- Polls for DOM update completion (checks button disappearance AND text length increase)
+- 500ms timeout with 5ms polling interval
+- Busy-wait synchronous polling to ensure DOM is fully updated before extraction
+
+**Function added**: `expandTruncatedText(tweetArticle: Element): void`
+
+**Impact**: Ensures full tweet text is captured, not just preview/truncated version
+
+### Image-Only Tweet Fallback (Edge Case)
+**Problem**: Image-only tweets (no text) would fail extraction.
+
+**Solution**: Added fallback in `src/extractors/tweet-extractor.ts`:
+- If text extraction returns null but media exists with altText
+- Uses first image's altText as tweet text
+- Prevents complete extraction failure for image-only content
+
+**Impact**: Handles edge case of image-only tweets gracefully
+
+### Test Server Enhancements
+**Changes in `test-server/server.ts` and `test-server/async-server.ts`**:
+- Removed 200-character truncation of tweet text (was for debugging, caused confusion)
+- Added image content items from media array
+- Content items now include actual image URLs for testing overlay image display
+- Returns proper content item structure with type, content, and metadata
+
+**Impact**: Test servers now return realistic data matching production format
 
 ---
 

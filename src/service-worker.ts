@@ -1,3 +1,5 @@
+import { logger } from './utils/logger';
+
 /**
  * TweetYoink Service Worker
  * Feature: 003-config-endpoint
@@ -9,10 +11,10 @@ import type { TweetData } from './types/tweet-data';
 import type { PostResponse } from './types/config';
 import { getConfig, getCustomHeaders } from './services/config-service';
 
-console.log('[TweetYoink Service Worker] Initialized');
+logger.log('[TweetYoink Service Worker] Initialized');
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('[TweetYoink Service Worker] Extension installed/updated');
+  logger.log('[TweetYoink Service Worker] Extension installed/updated');
 
   // Restore alarms for any active polls
   restoreActivePolls();
@@ -23,7 +25,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   // Check if this is a polling alarm
   if (alarm.name.startsWith('poll_')) {
     const requestId = alarm.name.replace('poll_', '');
-    console.log('[TweetYoink Service Worker] Alarm fired for:', requestId);
+    logger.log('[TweetYoink Service Worker] Alarm fired for:', requestId);
 
     await pollRequest(requestId);
   }
@@ -173,9 +175,9 @@ async function postTweetDataFromWorker(
     const url = new URL(config.endpointUrl);
     const origin = `${url.protocol}//${url.hostname}/*`;
 
-    console.log('[TweetYoink SW] Checking permission for:', origin);
+    logger.log('[TweetYoink SW] Checking permission for:', origin);
     const hasPermission = await chrome.permissions.contains({ origins: [origin] });
-    console.log('[TweetYoink SW] Permission granted:', hasPermission);
+    logger.log('[TweetYoink SW] Permission granted:', hasPermission);
 
     if (!hasPermission) {
       return {
@@ -206,9 +208,9 @@ async function postTweetDataFromWorker(
       }
     }
 
-    console.log('[TweetYoink SW] POSTing to:', config.endpointUrl);
-    console.log('[TweetYoink SW] Request headers:', logHeaders);
-    console.log('[TweetYoink SW] Tweet data:', tweetData);
+    logger.log('[TweetYoink SW] POSTing to:', config.endpointUrl);
+    logger.log('[TweetYoink SW] Request headers:', logHeaders);
+    logger.log('[TweetYoink SW] Tweet data:', tweetData);
 
     // Make POST request
     const response = await fetch(config.endpointUrl, {
@@ -218,14 +220,14 @@ async function postTweetDataFromWorker(
       signal: AbortSignal.timeout(config.postTimeoutSeconds * 1000),
     });
 
-    console.log('[TweetYoink SW] Response status:', response.status);
+    logger.log('[TweetYoink SW] Response status:', response.status);
 
     // Log response headers
     const responseHeaders: Record<string, string> = {};
     response.headers.forEach((value, key) => {
       responseHeaders[key] = value;
     });
-    console.log('[TweetYoink SW] Response headers:', responseHeaders);
+    logger.log('[TweetYoink SW] Response headers:', responseHeaders);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => '');
@@ -238,12 +240,12 @@ async function postTweetDataFromWorker(
     }
 
     const responseData: PostResponse = await response.json();
-    console.log('[TweetYoink SW] Response data:', responseData);
+    logger.log('[TweetYoink SW] Response data:', responseData);
 
     // If response is async, start polling automatically
     if ('requestId' in responseData && (responseData.status === 'pending' || responseData.status === 'processing')) {
       const tweetIdentifier = `${tweetData.author.handle || 'unknown'}_${tweetData.timestamp || Date.now()}`;
-      console.log('[TweetYoink SW] Starting polling for:', responseData.requestId);
+      logger.log('[TweetYoink SW] Starting polling for:', responseData.requestId);
       await startPolling(responseData.requestId, tweetIdentifier);
     }
 
@@ -252,7 +254,7 @@ async function postTweetDataFromWorker(
       data: responseData,
     };
   } catch (error: any) {
-    console.error('[TweetYoink SW] POST error:', error);
+    logger.error('[TweetYoink SW] POST error:', error);
 
     if (error.name === 'TimeoutError' || error.name === 'AbortError') {
       return {
@@ -288,7 +290,7 @@ async function restoreActivePolls(): Promise<void> {
     return;
   }
 
-  console.log(`[TweetYoink Service Worker] Restoring ${activePolls.length} active polls`);
+  logger.log(`[TweetYoink Service Worker] Restoring ${activePolls.length} active polls`);
 
   for (const poll of activePolls) {
     const now = Date.now();

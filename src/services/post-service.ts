@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger';
+
 /**
  * POST service for sending tweet data to configured endpoint
  * Feature: 003-config-endpoint
@@ -42,7 +44,7 @@ export class ConfigError extends Error {
  * Content scripts cannot access chrome.permissions, so we delegate to service worker
  */
 export async function postTweetData(tweetData: TweetData): Promise<PostResponse> {
-  console.log('[TweetYoink] Sending tweet data via service worker');
+  logger.log('[TweetYoink] Sending tweet data via service worker');
 
   try {
     const response = await chrome.runtime.sendMessage({
@@ -51,10 +53,10 @@ export async function postTweetData(tweetData: TweetData): Promise<PostResponse>
     });
 
     if (response.success) {
-      console.log('[TweetYoink] POST successful');
+      logger.log('[TweetYoink] POST successful');
       return response.data;
     } else {
-      console.error('[TweetYoink] POST failed:', response.error);
+      logger.error('[TweetYoink] POST failed:', response.error);
 
       // Re-throw with appropriate error type
       if (response.errorType === 'HttpError') {
@@ -77,7 +79,7 @@ export async function postTweetData(tweetData: TweetData): Promise<PostResponse>
     }
 
     // Handle chrome.runtime errors
-    console.error('[TweetYoink] Service worker communication error:', error);
+    logger.error('[TweetYoink] Service worker communication error:', error);
     throw new Error(`Failed to communicate with service worker: ${error.message}`);
   }
 }

@@ -13,6 +13,10 @@ const PORT = process.env.PORT || 3000;
 const ASYNC_COMPLETION_TIME_MS = 30000; // 30 seconds (matches async-server.ts)
 const MODE = process.argv.includes('--async') ? 'async' : 'sync';
 
+// Test modes for empty state testing
+const TEST_MODE_EMPTY = process.argv.includes('--test-empty'); // Return empty array
+const TEST_MODE_NO_TEXT = process.argv.includes('--test-no-text'); // Return only unsupported types
+
 // Store for simulated async requests
 const asyncRequests = new Map<string, { status: string; result?: any; error?: any }>();
 
@@ -89,16 +93,77 @@ async function handleTweetsPost(req: IncomingMessage, res: ServerResponse) {
       }, 3000);
 
       setTimeout(() => {
+        // Build content items from actual tweet data
+        let contentItems = [];
+
+        // Test mode: return empty array
+        if (TEST_MODE_EMPTY) {
+          console.log('🧪 TEST MODE: Returning empty array');
+          contentItems = [];
+        }
+        // Test mode: return only unsupported types (no text/image)
+        else if (TEST_MODE_NO_TEXT) {
+          console.log('🧪 TEST MODE: Returning only unsupported types');
+          contentItems.push({
+            type: 'video',
+            content: 'https://example.com/video.mp4',
+            metadata: { title: 'Unsupported Video' },
+          });
+          contentItems.push({
+            type: 'audio',
+            content: 'https://example.com/audio.mp3',
+            metadata: { title: 'Unsupported Audio' },
+          });
+        }
+        // Normal mode: return actual content
+        else {
+          // Item 1: Author information
+          const authorHandle = tweetData.author?.handle || 'unknown';
+          const authorDisplay = tweetData.author?.displayName || 'Unknown User';
+          const isVerified = tweetData.author?.isVerified ? '✓ Verified' : '';
+          contentItems.push({
+            type: 'text',
+            content: `Author: @${authorHandle} (${authorDisplay}) ${isVerified}`,
+            metadata: {
+              title: 'Tweet Author',
+              timestamp: new Date().toISOString(),
+            },
+          });
+
+          // Item 2: Tweet content (full text, no truncation)
+          const tweetText = tweetData.text || '[No text content]';
+          contentItems.push({
+            type: 'text',
+            content: tweetText,
+            metadata: {
+              title: 'Tweet Content',
+              length: tweetText.length,
+            },
+          });
+
+          // Item 3: Media - add actual images
+          if (tweetData.media && tweetData.media.length > 0) {
+            tweetData.media.forEach((mediaItem: any, index: number) => {
+              if (mediaItem.type === 'image' && mediaItem.url) {
+                contentItems.push({
+                  type: 'image',
+                  content: mediaItem.url,
+                  metadata: {
+                    title: mediaItem.altText || `Image ${index + 1}`,
+                    altText: mediaItem.altText,
+                    index: index,
+                  },
+                });
+              }
+            });
+          }
+        }
+
         asyncRequests.set(requestId, {
           status: 'completed',
-          result: {
-            analysis: 'This is a simulated analysis result',
-            sentiment: 'positive',
-            keywords: ['test', 'tweet', 'data'],
-            processedAt: new Date().toISOString(),
-          },
+          result: contentItems,
         });
-        console.log(`✅ Request ${requestId} COMPLETED`);
+        console.log(`✅ Request ${requestId} COMPLETED with ${contentItems.length} items`);
       }, ASYNC_COMPLETION_TIME_MS);
 
       // Return async response
@@ -108,15 +173,76 @@ async function handleTweetsPost(req: IncomingMessage, res: ServerResponse) {
         estimatedDuration: ASYNC_COMPLETION_TIME_MS / 1000, // Convert ms to seconds
       });
     } else {
-      // Synchronous response
+      // Synchronous response with content items array showing actual tweet data
+      let contentItems = [];
+
+      // Test mode: return empty array
+      if (TEST_MODE_EMPTY) {
+        console.log('🧪 TEST MODE: Returning empty array');
+        contentItems = [];
+      }
+      // Test mode: return only unsupported types (no text/image)
+      else if (TEST_MODE_NO_TEXT) {
+        console.log('🧪 TEST MODE: Returning only unsupported types');
+        contentItems.push({
+          type: 'video',
+          content: 'https://example.com/video.mp4',
+          metadata: { title: 'Unsupported Video' },
+        });
+        contentItems.push({
+          type: 'audio',
+          content: 'https://example.com/audio.mp3',
+          metadata: { title: 'Unsupported Audio' },
+        });
+      }
+      // Normal mode: return actual content
+      else {
+        // Item 1: Author information
+        const authorHandle = tweetData.author?.handle || 'unknown';
+        const authorDisplay = tweetData.author?.displayName || 'Unknown User';
+        const isVerified = tweetData.author?.isVerified ? '✓ Verified' : '';
+        contentItems.push({
+          type: 'text',
+          content: `Author: @${authorHandle} (${authorDisplay}) ${isVerified}`,
+          metadata: {
+            title: 'Tweet Author',
+            timestamp: new Date().toISOString(),
+          },
+        });
+
+        // Item 2: Tweet content (full text, no truncation)
+        const tweetText = tweetData.text || '[No text content]';
+        contentItems.push({
+          type: 'text',
+          content: tweetText,
+          metadata: {
+            title: 'Tweet Content',
+            length: tweetText.length,
+          },
+        });
+
+        // Item 3: Media - add actual images
+        if (tweetData.media && tweetData.media.length > 0) {
+          tweetData.media.forEach((mediaItem: any, index: number) => {
+            if (mediaItem.type === 'image' && mediaItem.url) {
+              contentItems.push({
+                type: 'image',
+                content: mediaItem.url,
+                metadata: {
+                  title: mediaItem.altText || `Image ${index + 1}`,
+                  altText: mediaItem.altText,
+                  index: index,
+                },
+              });
+            }
+          });
+        }
+      }
+
+      console.log(`✅ Sync response with ${contentItems.length} items`);
       sendJson(res, 200, {
         status: 'completed',
-        result: {
-          message: 'Tweet data received successfully',
-          receivedAt: new Date().toISOString(),
-          tweetAuthor: tweetData.author?.handle || 'unknown',
-          tweetText: tweetData.text?.substring(0, 50) + '...' || 'no text',
-        },
+        result: contentItems,
       });
     }
   } catch (error) {

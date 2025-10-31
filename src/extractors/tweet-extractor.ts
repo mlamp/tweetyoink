@@ -1,3 +1,5 @@
+import { logger } from '../utils/logger';
+
 /**
  * Main extraction orchestrator for tweet data
  * Feature: 002-post-view-yoink
@@ -17,6 +19,81 @@ import { extractTweetType, extractQuotedTweetElement } from './tweet-type-extrac
 import { calculateConfidence, getExtractionTierLabel } from './confidence';
 import { extractMedia } from './media-extractor';
 import { extractLinkCard } from './linkcard-extractor';
+import { extractTweetUrl } from './url-extractor';
+
+/**
+ * Expands truncated tweet text by clicking "Show more" button if present
+ * @param tweetArticle - The tweet article element
+ */
+function expandTruncatedText(tweetArticle: Element): void {
+  try {
+    // Look for "Show more" button - Twitter uses data-testid="tweet-text-show-more-link"
+    const showMoreButton = tweetArticle.querySelector(
+      '[data-testid="tweet-text-show-more-link"]'
+    ) as HTMLButtonElement;
+
+    if (showMoreButton) {
+      // Get the tweet text element to monitor changes
+      const tweetTextElement = tweetArticle.querySelector('[data-testid="tweetText"]');
+      const initialTextLength = tweetTextElement?.textContent?.length || 0;
+
+      // Click the button - use multiple click strategies since Twitter may ignore programmatic clicks
+      // Strategy 1: Try direct click
+      showMoreButton.click();
+
+      // Strategy 2: Dispatch mouse events to simulate real user interaction
+      const mouseDownEvent = new MouseEvent('mousedown', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      });
+      const mouseUpEvent = new MouseEvent('mouseup', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      });
+      const clickEvent = new MouseEvent('click', {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      });
+
+      showMoreButton.dispatchEvent(mouseDownEvent);
+      showMoreButton.dispatchEvent(mouseUpEvent);
+      showMoreButton.dispatchEvent(clickEvent);
+
+      // Wait for the DOM to update - poll for changes with timeout
+      const maxWaitMs = 2000; // Maximum 2 seconds wait
+      const startTime = performance.now();
+      let lastTextLength = initialTextLength;
+
+      while (performance.now() - startTime < maxWaitMs) {
+        // Check if button is gone (indicates expansion completed)
+        const buttonStillExists = tweetArticle.querySelector('[data-testid="tweet-text-show-more-link"]');
+        const currentTextLength = tweetTextElement?.textContent?.length || 0;
+
+        // Success condition: button gone AND text grew
+        if (!buttonStillExists && currentTextLength > initialTextLength) {
+          return;
+        }
+
+        // Also check if text is still growing (button might take time to disappear)
+        if (currentTextLength > lastTextLength) {
+          lastTextLength = currentTextLength;
+        }
+
+        // Small delay before next check (busy wait for 10ms)
+        const delayStart = performance.now();
+        while (performance.now() - delayStart < 10) {
+          // Busy wait
+        }
+      }
+    }
+  } catch (error) {
+    logger.warn('[TweetExtractor] Failed to expand truncated text:', error);
+    // Non-critical error - continue with extraction even if expansion fails
+  }
+}
 
 /**
  * Extracts complete tweet data from article element
@@ -31,7 +108,7 @@ export function extractTweetData(
   // Prevent infinite recursion (max 3 levels: tweet -> quote -> nested quote)
   const MAX_DEPTH = 3;
   if (depth >= MAX_DEPTH) {
-    console.warn('[TweetYoink] Max extraction depth reached, stopping recursion');
+    logger.warn('[TweetYoink] Max extraction depth reached, stopping recursion');
     return {
       success: false,
       data: null,
@@ -48,14 +125,37 @@ export function extractTweetData(
   const fieldResults: FieldExtractionResult[] = [];
 
   try {
+    // Expand truncated text before extraction
+    expandTruncatedText(tweetArticle);
+
+    // Give Twitter a moment to fully render the DOM (even if no "Show more" button)
+    // Some tweets have lazy-loaded content that needs time to populate
+    const delayStart = performance.now();
+    while (performance.now() - delayStart < 50) {
+      // Busy wait for 50ms
+    }
+
     // Extract text
-    const text = extractTweetText(tweetArticle);
+    let text = extractTweetText(tweetArticle);
     fieldResults.push({
       name: 'text',
       extracted: text !== null,
       tier: 'primary', // Simplified for MVP - would track actual tier used
     });
-    if (text === null) {
+
+    // Extract media first (needed for text fallback)
+    const media = extractMedia(tweetArticle);
+
+    // Fallback: use image altText if no text content found
+    if (text === null && media.length > 0) {
+      const firstImageWithAlt = media.find(m => m.type === 'image' && m.altText);
+      if (firstImageWithAlt?.altText) {
+        text = firstImageWithAlt.altText;
+        warnings.push('Using image altText as tweet text (image-only tweet)');
+      } else {
+        warnings.push('Failed to extract tweet text');
+      }
+    } else if (text === null) {
       warnings.push('Failed to extract tweet text');
     }
 
@@ -79,6 +179,17 @@ export function extractTweetData(
     });
     if (timestamp === null) {
       warnings.push('Failed to extract timestamp');
+    }
+
+    // Extract tweet URL
+    const url = extractTweetUrl(tweetArticle);
+    fieldResults.push({
+      name: 'url',
+      extracted: url !== null,
+      tier: 'primary',
+    });
+    if (url === null) {
+      warnings.push('Failed to extract tweet URL');
     }
 
     // Extract metrics
@@ -127,8 +238,7 @@ export function extractTweetData(
       tier: 'primary',
     });
 
-    // Extract media (images, videos, GIFs)
-    const media = extractMedia(tweetArticle);
+    // Media already extracted earlier (for text fallback)
     fieldResults.push({
       name: 'media',
       extracted: media.length > 0,
@@ -153,6 +263,7 @@ export function extractTweetData(
 
     const tweetData: TweetData = {
       text,
+      url,
       author,
       timestamp,
       metrics,
@@ -177,7 +288,7 @@ export function extractTweetData(
   } catch (error) {
     const duration = Math.round(performance.now() - startTime);
 
-    console.error('[TweetYoink] Extraction failed:', error);
+    logger.error('[TweetYoink] Extraction failed:', error);
 
     return {
       success: false,
