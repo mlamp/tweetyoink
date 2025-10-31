@@ -460,13 +460,18 @@ components:
 
         url:
           type: string
-          description: Media URL (may be blob URL for videos)
+          description: |
+            Media URL - may be http://, https://, or blob: URL.
+            Chrome extensions often use blob: URLs for DOM-captured media.
+            Note: blob: URLs cannot be fetched server-side.
           example: "https://pbs.twimg.com/media/image123.jpg"
 
         thumbnailUrl:
           type: string
           nullable: true
-          description: Thumbnail/poster image URL (for videos)
+          description: |
+            Thumbnail/poster image URL (for videos) - may be http://, https://, or blob: URL.
+            Chrome extensions often use blob: URLs for DOM-captured media.
           example: "https://pbs.twimg.com/video_thumb/thumb123.jpg"
 
         altText:
