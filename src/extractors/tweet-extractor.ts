@@ -82,11 +82,8 @@ function expandTruncatedText(tweetArticle: Element): void {
           lastTextLength = currentTextLength;
         }
 
-        // Small delay before next check (busy wait for 10ms)
-        const delayStart = performance.now();
-        while (performance.now() - delayStart < 10) {
-          // Busy wait
-        }
+        // No artificial delay - let the browser's event loop handle timing naturally
+        // The outer while loop will re-check as fast as needed without blocking
       }
     }
   } catch (error) {
@@ -126,14 +123,8 @@ export function extractTweetData(
 
   try {
     // Expand truncated text before extraction
+    // Note: expandTruncatedText already handles waiting for DOM updates via polling
     expandTruncatedText(tweetArticle);
-
-    // Give Twitter a moment to fully render the DOM (even if no "Show more" button)
-    // Some tweets have lazy-loaded content that needs time to populate
-    const delayStart = performance.now();
-    while (performance.now() - delayStart < 50) {
-      // Busy wait for 50ms
-    }
 
     // Extract text
     let text = extractTweetText(tweetArticle);

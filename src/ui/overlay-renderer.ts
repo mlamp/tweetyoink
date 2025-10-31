@@ -205,7 +205,8 @@ function renderContentItem(item: ResponseContentItem): HTMLElement {
     img.onerror = () => {
       img.style.display = 'none';
       const errorText = document.createElement('div');
-      errorText.textContent = `Failed to load image: ${item.content}`;
+      // Don't expose image URL in error message (security/privacy)
+      errorText.textContent = 'Failed to load image';
       errorText.className = 'tweetyoink-overlay-error';
       itemElement.appendChild(errorText);
     };

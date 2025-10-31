@@ -70,7 +70,8 @@ export function parseServerResponse(response: PostResponse): ParsedResponse {
         .map((item, index) => {
           // Validate item structure
           if (!isValidContentItem(item)) {
-            logger.warn(`[ResponseHandler] Invalid content item at index ${index}:`, item);
+            // Don't log full item (may contain sensitive/PII data)
+            logger.warn(`[ResponseHandler] Invalid content item at index ${index}: failed validation`);
             return null;
           }
           return item as ResponseContentItem;
