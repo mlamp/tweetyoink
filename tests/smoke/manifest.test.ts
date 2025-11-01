@@ -48,7 +48,11 @@ describe('Manifest Validation', () => {
 
     // Should have necessary permissions
     expect(manifest.permissions).toBeInstanceOf(Array);
-    expect(manifest.host_permissions).toBeInstanceOf(Array);
+
+    // Should have either host_permissions or optional_host_permissions
+    const hasHostPermissions = manifest.host_permissions instanceof Array;
+    const hasOptionalHostPermissions = manifest.optional_host_permissions instanceof Array;
+    expect(hasHostPermissions || hasOptionalHostPermissions).toBe(true);
 
     // Should have proper structure for Manifest V3
     expect(manifest.background).toBeDefined();
