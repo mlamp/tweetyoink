@@ -700,41 +700,64 @@ components:
 
     ResponseContentItem:
       type: object
-      description: Single content item for overlay display
+      description: |
+        Single content item for overlay display (v1.2.0 with Feature 008 enhancements).
+
+        **Version 1.2.0 Changes**:
+        - Added optional `title` field for all content types
+        - Added "debug" content type for formatted JSON display
+        - Extended `content` to support object type for debug content
       required:
         - type
         - content
       properties:
         type:
           type: string
-          enum: [text, image, link, unknown]
+          enum: [text, image, debug, link, unknown]
           description: |
             Content type determines rendering:
             - "text": Plain text (rendered with textContent - XSS safe)
             - "image": Image URL (rendered as <img> tag)
+            - "debug": JSON object (NEW in v1.2.0 - formatted with 2-space indent, monospaced font)
             - "link": URL (future support)
             - "unknown": Ignored by extension
           example: "text"
 
         content:
-          type: string
+          oneOf:
+            - type: string
+              description: For text, image, link types
+            - type: object
+              description: For debug type - any JSON-serializable object
           description: |
-            Content payload:
+            Content payload (type depends on 'type' field):
             - type="text": Plain text string to display
             - type="image": Image URL to render
+            - type="debug": JSON object to format and display (NEW in v1.2.0)
             - type="link": URL (future)
           example: "Sentiment Analysis: Positive (95% confidence)"
+
+        title:
+          type: string
+          description: |
+            **NEW in v1.2.0**: Optional title displayed above content.
+            Applies to all content types (text, image, debug, link).
+            If present and non-empty, renders as bold header above content block.
+            If empty or missing, no title header is shown.
+          example: "Sentiment Analysis"
 
         metadata:
           type: object
           additionalProperties: true
           description: |
             Optional metadata (not displayed in overlay, available for future use).
-            Examples: title, timestamp, confidence, model name, etc.
+            Examples: timestamp, confidence, model name, etc.
+
+            **Deprecation Note**: metadata.title is deprecated in favor of top-level title field.
           example:
-            title: "Sentiment Analysis"
             model: "claude-3-5-sonnet"
             confidence: 0.95
+            timestamp: "2025-11-01T12:00:00Z"
 
   securitySchemes:
     ApiKeyAuth:
