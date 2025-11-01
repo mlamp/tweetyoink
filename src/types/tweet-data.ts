@@ -12,6 +12,7 @@ export interface AuthorData {
   displayName: string | null;     // Full display name (e.g., "Test User Account")
   isVerified: boolean;            // True if verified badge present
   profileImageUrl: string | null; // Avatar image URL
+  profileUrl: string;              // Profile URL (e.g., "https://x.com/TestUser123") - REQUIRED, constructed from handle if not extractable
 }
 
 /**
@@ -81,7 +82,7 @@ export interface TweetData {
   text: string | null;
 
   // Tweet URL
-  url: string | null; // Direct link to tweet (e.g., "https://x.com/user/status/123")
+  url: string; // Direct link to tweet (e.g., "https://x.com/user/status/123") - REQUIRED, constructed if not extractable
 
   // Author information
   author: AuthorData;
