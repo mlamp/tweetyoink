@@ -11,6 +11,7 @@
     "watch:dev": "vite build --watch --mode development",
     "type-check": "tsc --noEmit",
     "generate-icons": "tsx scripts/generate-icons.ts",
+    "package": "npm run build && tsx scripts/package.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "server": "tsx test-server/server.ts",
@@ -19,8 +20,10 @@
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.0.0-beta.21",
     "@playwright/test": "^1.56.1",
+    "@types/archiver": "^7.0.0",
     "@types/chrome": "^0.0.254",
     "@types/node": "^24.9.1",
+    "archiver": "^7.0.1",
     "playwright": "^1.56.1",
     "sharp": "^0.34.4",
     "tsx": "^4.20.6",
