@@ -28,11 +28,11 @@ This project uses a single-project structure at repository root:
 
 **Purpose**: Verify existing project structure and dependencies are ready for overlay enhancements
 
-- [ ] T001 Verify TypeScript 5.x strict mode configuration in tsconfig.json
-- [ ] T002 Verify existing overlay system (Feature 004) is functional
-- [ ] T003 [P] Verify no new dependencies required (use native JSON.stringify)
-- [ ] T004 [P] Review existing src/types/overlay.ts interface to understand current structure
-- [ ] T005 [P] Review existing src/ui/overlay-renderer.ts to understand rendering logic
+- [X] T001 Verify TypeScript 5.x strict mode configuration in tsconfig.json
+- [X] T002 Verify existing overlay system (Feature 004) is functional
+- [X] T003 [P] Verify no new dependencies required (use native JSON.stringify)
+- [X] T004 [P] Review existing src/types/overlay.ts interface to understand current structure
+- [X] T005 [P] Review existing src/ui/overlay-renderer.ts to understand rendering logic
 
 **Checkpoint**: Project structure verified - ready to begin user story implementation
 
@@ -44,14 +44,14 @@ This project uses a single-project structure at repository root:
 
 **⚠️ NOTE**: This feature has minimal foundational work since it extends existing overlay system. Type updates serve all user stories.
 
-- [ ] T006 [P] Add optional `title?: string` field to ResponseContentItem interface in src/types/overlay.ts
-- [ ] T007 [P] Update ResponseContentItem type union to support `type: 'debug'` in src/types/overlay.ts
-- [ ] T008 [P] Extend ResponseContentItem content field to `string | object` union type in src/types/overlay.ts
-- [ ] T009 Create DebugContentItem interface extending ResponseContentItem in src/types/overlay.ts
-- [ ] T010 [P] Add isDebugContentItem() type guard function in src/types/overlay.ts
-- [ ] T011 [P] Add hasRenderableTitle() helper function in src/types/overlay.ts
-- [ ] T012 [P] Add TitleRenderOptions interface in src/types/overlay.ts
-- [ ] T013 [P] Add DebugRenderOptions interface in src/types/overlay.ts
+- [X] T006 [P] Add optional `title?: string` field to ResponseContentItem interface in src/types/overlay.ts
+- [X] T007 [P] Update ResponseContentItem type union to support `type: 'debug'` in src/types/overlay.ts
+- [X] T008 [P] Extend ResponseContentItem content field to `string | object` union type in src/types/overlay.ts
+- [X] T009 Create DebugContentItem interface extending ResponseContentItem in src/types/overlay.ts
+- [X] T010 [P] Add isDebugContentItem() type guard function in src/types/overlay.ts
+- [X] T011 [P] Add hasRenderableTitle() helper function in src/types/overlay.ts
+- [X] T01- [ ] T012 [P] Add TitleRenderOptions interface in src/types/overlay.ts
+- [X] T01- [ ] T013 [P] Add DebugRenderOptions interface in src/types/overlay.ts
 
 **Checkpoint**: Type definitions complete - user story implementation can now begin in parallel
 
@@ -65,16 +65,16 @@ This project uses a single-project structure at repository root:
 
 ### Implementation for User Story 1
 
-- [ ] T014 [P] [US1] Create renderTitle() function in src/ui/overlay-renderer.ts
-- [ ] T015 [P] [US1] Add title validation logic (trim whitespace, check non-empty) in src/ui/overlay-renderer.ts
-- [ ] T016 [P] [US1] Add XSS protection via textContent for title rendering in src/ui/overlay-renderer.ts
-- [ ] T017 [US1] Update renderContentItem() to conditionally render title if present in src/ui/overlay-renderer.ts
-- [ ] T018 [US1] Ensure title renders for existing text content type in src/ui/overlay-renderer.ts
-- [ ] T019 [US1] Ensure title renders for existing image content type in src/ui/overlay-renderer.ts
-- [ ] T020 [P] [US1] Add .overlay-item-title CSS class with bold/distinct styling in src/ui/overlay.css
-- [ ] T021 [P] [US1] Add title margin/padding for visual separation from content in src/ui/overlay.css
-- [ ] T022 [P] [US1] Add bottom border or underline to title for visual distinction in src/ui/overlay.css
-- [ ] T023 [P] [US1] Ensure title styling is responsive (mobile 320px to desktop 3840px) in src/ui/overlay.css
+- [X] T01- [ ] T014 [P] [US1] Create renderTitle() function in src/ui/overlay-renderer.ts
+- [X] T01- [ ] T015 [P] [US1] Add title validation logic (trim whitespace, check non-empty) in src/ui/overlay-renderer.ts
+- [X] T01- [ ] T016 [P] [US1] Add XSS protection via textContent for title rendering in src/ui/overlay-renderer.ts
+- [X] T01- [ ] T017 [US1] Update renderContentItem() to conditionally render title if present in src/ui/overlay-renderer.ts
+- [X] T01- [ ] T018 [US1] Ensure title renders for existing text content type in src/ui/overlay-renderer.ts
+- [X] T01- [ ] T019 [US1] Ensure title renders for existing image content type in src/ui/overlay-renderer.ts
+- [X] T02- [ ] T020 [P] [US1] Add .overlay-item-title CSS class with bold/distinct styling in src/ui/overlay.css
+- [X] T02- [ ] T021 [P] [US1] Add title margin/padding for visual separation from content in src/ui/overlay.css
+- [X] T02- [ ] T022 [P] [US1] Add bottom border or underline to title for visual distinction in src/ui/overlay.css
+- [X] T02- [ ] T023 [P] [US1] Ensure title styling is responsive (mobile 320px to desktop 3840px) in src/ui/overlay.css
 - [ ] T024 [US1] Test titled text content: verify title appears above text
 - [ ] T025 [US1] Test untitled text content: verify backward compatibility (no title header)
 - [ ] T026 [US1] Test multiple titled items: verify each shows distinct title
@@ -95,22 +95,22 @@ This project uses a single-project structure at repository root:
 
 ### Implementation for User Story 2
 
-- [ ] T031 [P] [US2] Create renderDebugContent() function in src/ui/overlay-renderer.ts
-- [ ] T032 [P] [US2] Implement JSON.stringify() with 2-space indentation for debug content in src/ui/overlay-renderer.ts
-- [ ] T033 [P] [US2] Add error handling for JSON serialization failures (circular refs, non-serializable) in src/ui/overlay-renderer.ts
-- [ ] T034 [P] [US2] Add logger.warn() for JSON formatting errors in src/ui/overlay-renderer.ts
-- [ ] T035 [P] [US2] Display user-friendly error message for invalid JSON structures in src/ui/overlay-renderer.ts
-- [ ] T036 [US2] Update renderContentItem() to handle type === 'debug' in src/ui/overlay-renderer.ts
-- [ ] T037 [US2] Ensure debug content can have optional title (inherit from US1) in src/ui/overlay-renderer.ts
-- [ ] T038 [P] [US2] Add .overlay-debug-content CSS class with monospaced font in src/ui/overlay.css
-- [ ] T039 [P] [US2] Set font-family to 'Consolas', 'Monaco', 'Courier New', monospace in src/ui/overlay.css
-- [ ] T040 [P] [US2] Add white-space: pre-wrap for JSON indentation preservation in src/ui/overlay.css
-- [ ] T041 [P] [US2] Add word-wrap: break-word for long lines on mobile in src/ui/overlay.css
-- [ ] T042 [P] [US2] Add light background color (#f5f5f5) for visual distinction in src/ui/overlay.css
-- [ ] T043 [P] [US2] Add padding and border-radius for debug content block in src/ui/overlay.css
-- [ ] T044 [P] [US2] Add left accent border (3px solid) for debug blocks in src/ui/overlay.css
-- [ ] T045 [P] [US2] Ensure debug content is scrollable for long JSON (overflow-x: auto) in src/ui/overlay.css
-- [ ] T046 [P] [US2] Add responsive styles for mobile viewports (<768px) in src/ui/overlay.css
+- [X] T03- [ ] T031 [P] [US2] Create renderDebugContent() function in src/ui/overlay-renderer.ts
+- [X] T03- [ ] T032 [P] [US2] Implement JSON.stringify() with 2-space indentation for debug content in src/ui/overlay-renderer.ts
+- [X] T03- [ ] T033 [P] [US2] Add error handling for JSON serialization failures (circular refs, non-serializable) in src/ui/overlay-renderer.ts
+- [X] T03- [ ] T034 [P] [US2] Add logger.warn() for JSON formatting errors in src/ui/overlay-renderer.ts
+- [X] T03- [ ] T035 [P] [US2] Display user-friendly error message for invalid JSON structures in src/ui/overlay-renderer.ts
+- [X] T03- [ ] T036 [US2] Update renderContentItem() to handle type === 'debug' in src/ui/overlay-renderer.ts
+- [X] T03- [ ] T037 [US2] Ensure debug content can have optional title (inherit from US1) in src/ui/overlay-renderer.ts
+- [X] T03- [ ] T038 [P] [US2] Add .overlay-debug-content CSS class with monospaced font in src/ui/overlay.css
+- [X] T03- [ ] T039 [P] [US2] Set font-family to 'Consolas', 'Monaco', 'Courier New', monospace in src/ui/overlay.css
+- [X] T04- [ ] T040 [P] [US2] Add white-space: pre-wrap for JSON indentation preservation in src/ui/overlay.css
+- [X] T04- [ ] T041 [P] [US2] Add word-wrap: break-word for long lines on mobile in src/ui/overlay.css
+- [X] T04- [ ] T042 [P] [US2] Add light background color (#f5f5f5) for visual distinction in src/ui/overlay.css
+- [X] T04- [ ] T043 [P] [US2] Add padding and border-radius for debug content block in src/ui/overlay.css
+- [X] T04- [ ] T044 [P] [US2] Add left accent border (3px solid) for debug blocks in src/ui/overlay.css
+- [X] T04- [ ] T045 [P] [US2] Ensure debug content is scrollable for long JSON (overflow-x: auto) in src/ui/overlay.css
+- [X] T04- [ ] T046 [P] [US2] Add responsive styles for mobile viewports (<768px) in src/ui/overlay.css
 - [ ] T047 [US2] Test debug JSON object: verify 2-space indentation and monospace font
 - [ ] T048 [US2] Test nested JSON (5+ levels): verify proper indentation throughout
 - [ ] T049 [US2] Test debug content with title: verify title appears above JSON
@@ -149,10 +149,10 @@ This project uses a single-project structure at repository root:
 
 **Purpose**: Documentation updates, contract finalization, and final validation
 
-- [ ] T063 [P] Update specs/004-response-overlay/contracts/response-format.yaml version to reference v1.2.0
-- [ ] T064 [P] Add migration notes to contracts/response-format-v1.2.yaml for servers
-- [ ] T065 [P] Document title and debug type usage examples in quickstart.md
-- [ ] T066 [P] Add troubleshooting section for common issues (circular refs, large JSON)
+- [X] T063 [P] Update specs/004-response-overlay/contracts/response-format.yaml version to reference v1.2.0
+- [X] T064 [P] Add migration notes to contracts/response-format-v1.2.yaml for servers
+- [X] T065 [P] Document title and debug type usage examples in quickstart.md
+- [X] T066 [P] Add troubleshooting section for common issues (circular refs, large JSON)
 - [ ] T067 [P] Update test-server example responses to demonstrate titles and debug type
 - [ ] T068 Test complete workflow: test server → Yoink → overlay with titles and debug
 - [ ] T069 Verify all functional requirements (FR-001 through FR-014) are met
@@ -161,11 +161,11 @@ This project uses a single-project structure at repository root:
 - [ ] T072 Manual performance test: 1000+ line JSON scrolls at 60fps
 - [ ] T073 Cross-browser compatibility test (Chrome, Edge, Brave)
 - [ ] T074 Responsive layout test: 320px mobile, 768px tablet, 1920px desktop
-- [ ] T075 [P] Add JSDoc comments to new functions (renderTitle, renderDebugContent)
-- [ ] T076 [P] Update CLAUDE.md agent context if needed
-- [ ] T077 Final code review: ensure logger usage, no console.log
-- [ ] T078 Final code review: ensure TypeScript strict mode compliance
-- [ ] T079 Create implementation summary in specs/008-overlay-enhancements/implementation-summary.md
+- [X] T075 [P] Add JSDoc comments to new functions (renderTitle, renderDebugContent)
+- [X] T076 [P] Update CLAUDE.md agent context if needed
+- [X] T077 Final code review: ensure logger usage, no console.log
+- [X] T078 Final code review: ensure TypeScript strict mode compliance
+- [X] T079 Create implementation summary in specs/008-overlay-enhancements/implementation-summary.md
 
 ---
 
