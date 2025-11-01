@@ -16,6 +16,14 @@ TweetYoink allows you to capture tweets with complete context (text, author, met
 - ⚙️ Configurable backend URL
 - 🚀 Built with TypeScript + Vite for fast development
 
+## Support TweetYoink
+
+If you find TweetYoink useful, consider buying me a yoink (that's one coffee in tweet-extraction units)! ☕
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/mlamp)
+
+Your support helps keep the selectors fresh and the fallbacks defensive. Because good code doesn't write itself... yet. 🤖
+
 ## Quick Start
 
 ### Prerequisites
