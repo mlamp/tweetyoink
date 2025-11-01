@@ -82,6 +82,7 @@ async function testEndpoint(url: string): Promise<{ success: boolean; error?: st
         displayName: 'Test User',
         isVerified: false,
         profileImageUrl: null,
+        profileUrl: 'https://x.com/test',
       },
       timestamp: new Date().toISOString(),
       metrics: {

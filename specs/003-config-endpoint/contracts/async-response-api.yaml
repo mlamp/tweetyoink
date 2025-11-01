@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: TweetYoink Async Response API Contract
-  version: 1.0.0
+  version: 1.1.0
   description: |
     API contract for backend endpoints that receive tweet data from TweetYoink extension.
     Supports both synchronous (immediate) and asynchronous (polling-based) responses.
@@ -40,10 +40,12 @@ paths:
                 summary: Simple tweet with text and author
                 value:
                   text: "Just deployed the new feature to production!"
+                  url: "https://x.com/johndoe/status/1234567890123456789"
                   author:
                     handle: "johndoe"
                     displayName: "John Doe"
                     isVerified: false
+                    profileUrl: "https://x.com/johndoe"
                   timestamp: "2025-10-28T15:30:00.000Z"
                   metrics:
                     replyCount: 5
@@ -69,10 +71,12 @@ paths:
                 summary: Quote tweet containing video
                 value:
                   text: "This is amazing! Check out the demo"
+                  url: "https://x.com/techreviewer/status/9876543210987654321"
                   author:
                     handle: "techreviewer"
                     displayName: "Tech Reviewer"
                     isVerified: true
+                    profileUrl: "https://x.com/techreviewer"
                   timestamp: "2025-10-28T14:20:00.000Z"
                   metrics:
                     replyCount: 120
@@ -88,10 +92,12 @@ paths:
                     isReply: false
                   parent:
                     text: "New product launch video"
+                    url: "https://x.com/companyofficial/status/1111111111111111111"
                     author:
                       handle: "companyofficial"
                       displayName: "Company Official"
                       isVerified: true
+                      profileUrl: "https://x.com/companyofficial"
                     media:
                       - type: "video"
                         url: "blob:https://x.com/abc123"
@@ -263,6 +269,7 @@ components:
       description: Complete tweet data extracted by TweetYoink extension
       required:
         - text
+        - url
         - author
         - timestamp
         - metrics
@@ -274,6 +281,10 @@ components:
           type: string
           nullable: true
           description: Tweet text content
+        url:
+          type: string
+          description: Tweet permalink URL (e.g., https://x.com/username/status/1234567890)
+          example: "https://x.com/ExxAlerts/status/1984307746691318153"
         author:
           $ref: '#/components/schemas/Author'
         timestamp:
@@ -303,6 +314,7 @@ components:
         - handle
         - displayName
         - isVerified
+        - profileUrl
       properties:
         handle:
           type: string
@@ -317,6 +329,10 @@ components:
         isVerified:
           type: boolean
           description: Whether user has verified badge
+        profileUrl:
+          type: string
+          description: Full profile URL for the author (e.g., https://x.com/username). Constructed from handle if direct extraction fails.
+          example: "https://x.com/ExxAlerts"
         profileImageUrl:
           type: string
           nullable: true

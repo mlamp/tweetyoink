@@ -452,3 +452,51 @@ export const tweetUrlSelector: SelectorConfig = {
   },
   tertiary: null,
 };
+
+/**
+ * Author profile URL selectors
+ * Feature: 006-add-tweet-urls
+ */
+export const authorProfileUrlSelector: SelectorConfig = {
+  primary: {
+    selector: '[data-testid="User-Name"] a[role="link"]',
+    type: 'css',
+    extractor: (el) => {
+      const href = el.getAttribute('href');
+      if (!href) return null;
+
+      // Extract handle from href (format: /{handle})
+      const match = href.match(/^\/([A-Za-z0-9_]{1,15})$/);
+      if (!match) return null;
+
+      return `https://x.com${href}`;
+    },
+    validator: (value) => {
+      return /^https:\/\/x\.com\/[A-Za-z0-9_]{1,15}$/.test(value);
+    },
+    confidence: 0.95,
+  },
+  secondary: {
+    selector: 'article[role="article"] a[href^="/"][href*="/"]',
+    type: 'css',
+    extractor: (el) => {
+      const href = el.getAttribute('href');
+      if (!href) return null;
+
+      // Look for profile links (format: /{handle} with no additional path)
+      const match = href.match(/^\/([A-Za-z0-9_]{1,15})$/);
+      if (!match) return null;
+
+      // Verify this is likely an author link (has avatar nearby or in header area)
+      const parent = el.closest('[data-testid="User-Name"], [data-testid="Tweet-User-Avatar"]');
+      if (!parent) return null;
+
+      return `https://x.com${href}`;
+    },
+    validator: (value) => {
+      return /^https:\/\/x\.com\/[A-Za-z0-9_]{1,15}$/.test(value);
+    },
+    confidence: 0.85,
+  },
+  tertiary: null,
+};

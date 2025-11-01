@@ -7,7 +7,12 @@ import { logger } from '../utils/logger';
  * Handles DOM creation and rendering for overlay display
  */
 
-import type { ResponseContentItem, OverlayConfig } from '../types/overlay';
+import type {
+  ResponseContentItem,
+  OverlayConfig,
+  DebugContentItem,
+  DebugData,
+} from '../types/overlay';
 
 /**
  * Escape HTML characters to prevent XSS injection
@@ -25,11 +30,13 @@ function escapeHtml(text: string): string {
  *
  * @param contentItems - Array of content items to render
  * @param config - Overlay configuration
+ * @param debugItems - Optional debug blocks (Feature 005)
  * @returns DOM element references for backdrop and container
  */
 export function renderOverlay(
   contentItems: ResponseContentItem[],
-  config: OverlayConfig
+  config: OverlayConfig,
+  debugItems?: DebugContentItem[]
 ): { backdrop: HTMLElement; container: HTMLElement } {
   logger.log('[OverlayRenderer] Rendering overlay with', contentItems.length, 'items');
 
@@ -51,6 +58,15 @@ export function renderOverlay(
     const itemElement = renderContentItem(item);
     contentArea.appendChild(itemElement);
   });
+
+  // Render debug blocks if present (Feature 005)
+  if (debugItems && debugItems.length > 0) {
+    logger.log('[OverlayRenderer] Rendering', debugItems.length, 'debug blocks');
+    debugItems.forEach((debugItem) => {
+      const debugElement = renderDebugBlock(debugItem);
+      contentArea.appendChild(debugElement);
+    });
+  }
 
   container.appendChild(contentArea);
 
@@ -277,4 +293,185 @@ export function loadOverlayStyles(): void {
 
   // For now, we rely on CSS being injected by the extension build process
   // If styles are missing at runtime, the overlay will still render but may lack styling
+}
+
+// ============================================================================
+// Debug Block Rendering (Feature: 005-debug-info-display)
+// ============================================================================
+
+/**
+ * Parse debug content JSON string
+ * Feature: 005-debug-info-display (T007)
+ *
+ * Safely parses JSON string with validation:
+ * - Must be valid JSON (JSON.parse doesn't throw)
+ * - Must be an object (not array, null, or primitive)
+ * - Returns null on any validation failure
+ *
+ * Error handling: All parse errors are caught and logged, returning null.
+ * Caller should check for null and render error state accordingly.
+ *
+ * @param content - JSON string from debug block (item.content)
+ * @returns Parsed DebugData object, or null if parsing/validation fails
+ */
+function parseDebugContent(content: string): DebugData | null {
+  try {
+    const parsed = JSON.parse(content);
+
+    // Validate structure - must be an object
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      logger.warn('[OverlayRenderer] Debug content is not an object');
+      return null;
+    }
+
+    return parsed as DebugData;
+  } catch (error) {
+    logger.warn('[OverlayRenderer] Failed to parse debug JSON:', error);
+    return null;
+  }
+}
+
+/**
+ * Render error state for malformed debug JSON
+ * Feature: 005-debug-info-display (T008)
+ *
+ * Displays a user-friendly error message with the raw JSON content as fallback.
+ * Used when parseDebugContent returns null (invalid JSON or non-object structure).
+ *
+ * Security: Raw content is rendered using textContent (not innerHTML) to prevent XSS.
+ * The raw content is shown in a scrollable <pre> limited to 200px height.
+ *
+ * @param rawContent - Raw JSON string that failed to parse
+ * @returns DOM element for debug error state (div.debug-block.debug-error)
+ */
+function renderDebugError(rawContent: string): HTMLElement {
+  const container = document.createElement('div');
+  container.className = 'debug-block debug-error';
+
+  const title = document.createElement('h3');
+  title.className = 'debug-title';
+  title.textContent = 'Debug Information (Parse Error)';
+  container.appendChild(title);
+
+  const errorMsg = document.createElement('p');
+  errorMsg.className = 'error-message';
+  errorMsg.textContent = 'Failed to parse debug JSON. Raw content displayed below.';
+  container.appendChild(errorMsg);
+
+  const rawContentPre = document.createElement('pre');
+  rawContentPre.className = 'debug-raw-content';
+  rawContentPre.textContent = rawContent; // Safe (textContent, not innerHTML)
+  container.appendChild(rawContentPre);
+
+  return container;
+}
+
+/**
+ * Render a collapsible debug section using native <details>/<summary> elements
+ * Feature: 005-debug-info-display - User Story 2 (T014)
+ *
+ * Uses native HTML5 <details>/<summary> elements for zero-JavaScript collapsibility.
+ * All sections start collapsed by default (no 'open' attribute).
+ * JSON data is safely rendered using textContent to prevent XSS.
+ *
+ * @param title - Section title (e.g., "Orchestrator Decisions")
+ * @param data - Section data (will be JSON.stringify'd with 2-space indentation)
+ * @returns DOM element for collapsible section (details element with debug-section class)
+ */
+function renderDebugSection(title: string, data: unknown): HTMLElement {
+  const details = document.createElement('details');
+  details.className = 'debug-section';
+
+  const summary = document.createElement('summary');
+  summary.textContent = title;
+  details.appendChild(summary);
+
+  const pre = document.createElement('pre');
+  pre.className = 'debug-content';
+  pre.textContent = JSON.stringify(data, null, 2); // Safe (textContent, not innerHTML)
+  details.appendChild(pre);
+
+  return details;
+}
+
+/**
+ * Render a debug content block with collapsible sections
+ * Feature: 005-debug-info-display (T009, updated for T015-T019)
+ *
+ * Parses the JSON content from a debug block and renders up to 4 collapsible sections:
+ * - Orchestrator Decisions: AI routing and analysis decisions
+ * - Agent Analyses: Individual agent outputs and structured analysis
+ * - Execution Metrics: Performance metrics (timing, tokens, temperature)
+ * - Request Metadata: Original tweet metadata (author, URL, media info)
+ *
+ * Sections are conditionally rendered - only present fields are shown.
+ * If parsing fails, renders error state with raw content fallback.
+ * If no sections present, renders empty state message.
+ *
+ * @param item - Debug content item (metadata.is_debug === true, content is JSON string)
+ * @returns DOM element for debug block (div.debug-block with title and sections)
+ */
+function renderDebugBlock(item: DebugContentItem): HTMLElement {
+  // Parse JSON content
+  const debugData = parseDebugContent(item.content);
+
+  // If parsing failed, show error state
+  if (!debugData) {
+    return renderDebugError(item.content);
+  }
+
+  // Create container
+  const container = document.createElement('div');
+  container.className = 'debug-block';
+
+  // Add title
+  const title = document.createElement('h3');
+  title.className = 'debug-title';
+  title.textContent = item.metadata.title || 'Debug Information';
+  container.appendChild(title);
+
+  // Track if any sections were rendered
+  let sectionsRendered = 0;
+
+  // Render orchestrator_decisions section (T015)
+  if (debugData.orchestrator_decisions !== undefined) {
+    container.appendChild(
+      renderDebugSection('Orchestrator Decisions', debugData.orchestrator_decisions)
+    );
+    sectionsRendered++;
+  }
+
+  // Render agent_analyses section (T016)
+  if (debugData.agent_analyses !== undefined) {
+    container.appendChild(
+      renderDebugSection('Agent Analyses', debugData.agent_analyses)
+    );
+    sectionsRendered++;
+  }
+
+  // Render execution_metrics section (T017)
+  if (debugData.execution_metrics !== undefined) {
+    container.appendChild(
+      renderDebugSection('Execution Metrics', debugData.execution_metrics)
+    );
+    sectionsRendered++;
+  }
+
+  // Render request_metadata section (T018)
+  if (debugData.request_metadata !== undefined) {
+    container.appendChild(
+      renderDebugSection('Request Metadata', debugData.request_metadata)
+    );
+    sectionsRendered++;
+  }
+
+  // Empty state if no sections rendered (T019)
+  if (sectionsRendered === 0) {
+    const emptyMsg = document.createElement('p');
+    emptyMsg.className = 'debug-empty';
+    emptyMsg.textContent = 'Debug data contains no recognized sections.';
+    container.appendChild(emptyMsg);
+  }
+
+  return container;
 }
