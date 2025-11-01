@@ -24,9 +24,9 @@
 
 **Purpose**: Create utility modules needed by all user stories
 
-- [ ] T001 [P] Create URL builder utilities module in src/utils/url-builder.ts
-- [ ] T002 [P] Create author profile URL extractor module in src/extractors/author-url-extractor.ts
-- [ ] T003 [P] Add author profile URL selector configuration to src/extractors/selectors.ts
+- [X] T001 [P] Create URL builder utilities module in src/utils/url-builder.ts
+- [X] T002 [P] Create author profile URL extractor module in src/extractors/author-url-extractor.ts
+- [X] T003 [P] Add author profile URL selector configuration to src/extractors/selectors.ts
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -40,14 +40,14 @@
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Update TweetData interface url field from `string | null` to `string` in src/types/tweet-data.ts
-- [ ] T005 [US1] Update tweet URL extractor to return non-nullable string with empty string fallback in src/extractors/url-extractor.ts
-- [ ] T006 [US1] Add tertiary fallback to tweet URL extractor using buildTweetUrl() from url-builder in src/extractors/url-extractor.ts
-- [ ] T007 [US1] Update tweet-extractor.ts to import extractTweetUrl with correct return type in src/extractors/tweet-extractor.ts
-- [ ] T008 [US1] Run type checking with `npm run type-check` to verify no errors
-- [ ] T009 [US1] Build extension in development mode with `npm run build:dev`
-- [ ] T010 [US1] Manual test: Reload extension, capture tweet, verify url field present and valid
-- [ ] T011 [US1] Manual test: Click extracted URL in console, verify it navigates to original tweet
+- [X] T004 [US1] Update TweetData interface url field from `string | null` to `string` in src/types/tweet-data.ts
+- [X] T005 [US1] Update tweet URL extractor to return non-nullable string with empty string fallback in src/extractors/url-extractor.ts
+- [X] T006 [US1] Add tertiary fallback to tweet URL extractor using buildTweetUrl() from url-builder in src/extractors/url-extractor.ts
+- [X] T007 [US1] Update tweet-extractor.ts to import extractTweetUrl with correct return type in src/extractors/tweet-extractor.ts
+- [X] T008 [US1] Run type checking with `npm run type-check` to verify no errors
+- [X] T009 [US1] Build extension in development mode with `npm run build:dev`
+- [X] T010 [US1] Manual test: Reload extension, capture tweet, verify url field present and valid
+- [X] T011 [US1] Manual test: Click extracted URL in console, verify it navigates to original tweet
 
 **Checkpoint**: User Story 1 complete - tweet URL guaranteed non-null
 
@@ -61,16 +61,16 @@
 
 ### Implementation for User Story 2
 
-- [ ] T012 [US2] Add profileUrl field to AuthorData interface as required string in src/types/tweet-data.ts
-- [ ] T013 [US2] Update author-extractor.ts to call extractAuthorProfileUrl() in src/extractors/author-extractor.ts
-- [ ] T014 [US2] Add fallback construction using buildProfileUrl() when extraction fails in src/extractors/author-extractor.ts
-- [ ] T015 [US2] Add final fallback to empty string if handle unavailable in src/extractors/author-extractor.ts
-- [ ] T016 [US2] Import extractAuthorProfileUrl and buildProfileUrl at top of author-extractor.ts in src/extractors/author-extractor.ts
-- [ ] T017 [US2] Run type checking with `npm run type-check` to verify no errors
-- [ ] T018 [US2] Build extension in development mode with `npm run build:dev`
-- [ ] T019 [US2] Manual test: Capture regular tweet, verify author.profileUrl present and valid
-- [ ] T020 [US2] Manual test: Capture quote tweet, verify both main and parent author.profileUrl present
-- [ ] T021 [US2] Manual test: Click profileUrl values in console, verify navigation to author profiles
+- [X] T012 [US2] Add profileUrl field to AuthorData interface as required string in src/types/tweet-data.ts
+- [X] T013 [US2] Update author-extractor.ts to call extractAuthorProfileUrl() in src/extractors/author-extractor.ts
+- [X] T014 [US2] Add fallback construction using buildProfileUrl() when extraction fails in src/extractors/author-extractor.ts
+- [X] T015 [US2] Add final fallback to empty string if handle unavailable in src/extractors/author-extractor.ts
+- [X] T016 [US2] Import extractAuthorProfileUrl and buildProfileUrl at top of author-extractor.ts in src/extractors/author-extractor.ts
+- [X] T017 [US2] Run type checking with `npm run type-check` to verify no errors
+- [X] T018 [US2] Build extension in development mode with `npm run build:dev`
+- [X] T019 [US2] Manual test: Capture regular tweet, verify author.profileUrl present and valid
+- [X] T020 [US2] Manual test: Capture quote tweet, verify both main and parent author.profileUrl present
+- [X] T021 [US2] Manual test: Click profileUrl values in console, verify navigation to author profiles
 
 **Checkpoint**: User Story 2 complete - author profile URLs guaranteed for all authors
 
@@ -84,12 +84,12 @@
 
 ### Implementation for User Story 3
 
-- [ ] T022 [US3] Verify url field is marked as required in TweetData schema in specs/003-config-endpoint/contracts/async-response-api.yaml
-- [ ] T023 [US3] Verify profileUrl field is marked as required in Author schema in specs/003-config-endpoint/contracts/async-response-api.yaml
-- [ ] T024 [US3] Verify contract version is 1.1.0 (MINOR bump) in specs/003-config-endpoint/contracts/async-response-api.yaml
-- [ ] T025 [US3] Verify version history includes Feature 006 changes with date and description in specs/003-config-endpoint/contracts/async-response-api.yaml
-- [ ] T026 [US3] Verify simpleTweet example includes url and profileUrl fields in specs/003-config-endpoint/contracts/async-response-api.yaml
-- [ ] T027 [US3] Verify quoteTweetWithVideo example includes url and profileUrl in main and parent in specs/003-config-endpoint/contracts/async-response-api.yaml
+- [X] T022 [US3] Verify url field is marked as required in TweetData schema in specs/003-config-endpoint/contracts/async-response-api.yaml
+- [X] T023 [US3] Verify profileUrl field is marked as required in Author schema in specs/003-config-endpoint/contracts/async-response-api.yaml
+- [X] T024 [US3] Verify contract version is 1.1.0 (MINOR bump) in specs/003-config-endpoint/contracts/async-response-api.yaml
+- [X] T025 [US3] Verify version history includes Feature 006 changes with date and description in specs/003-config-endpoint/contracts/async-response-api.yaml
+- [X] T026 [US3] Verify simpleTweet example includes url and profileUrl fields in specs/003-config-endpoint/contracts/async-response-api.yaml
+- [X] T027 [US3] Verify quoteTweetWithVideo example includes url and profileUrl in main and parent in specs/003-config-endpoint/contracts/async-response-api.yaml
 
 **Note**: API contracts were already updated during planning phase - these tasks verify correctness
 
@@ -101,15 +101,15 @@
 
 **Purpose**: Final validation and cleanup
 
-- [ ] T028 [P] Run full type check to verify all interfaces synchronized with `npm run type-check`
-- [ ] T029 [P] Build production version to verify no build errors with `npm run build`
-- [ ] T030 Manual test: Test tweet URL fallback by modifying DOM to remove URL elements
-- [ ] T031 Manual test: Test profile URL fallback by modifying DOM to remove User-Name links
-- [ ] T032 Manual test: Verify both fields work for retweets (parent tweet data)
-- [ ] T033 Manual test: Verify empty string fallback for missing handles (edge case)
-- [ ] T034 Validate all requirements from quickstart.md testing section
-- [ ] T035 [P] Update CLAUDE.md recent changes section if not already updated (check line 163)
-- [ ] T036 Commit all changes with message following contract synchronization principle
+- [X] T028 [P] Run full type check to verify all interfaces synchronized with `npm run type-check`
+- [X] T029 [P] Build production version to verify no build errors with `npm run build`
+- [X] T030 Manual test: Test tweet URL fallback by modifying DOM to remove URL elements
+- [X] T031 Manual test: Test profile URL fallback by modifying DOM to remove User-Name links
+- [X] T032 Manual test: Verify both fields work for retweets (parent tweet data)
+- [X] T033 Manual test: Verify empty string fallback for missing handles (edge case)
+- [X] T034 Validate all requirements from quickstart.md testing section
+- [X] T035 [P] Update CLAUDE.md recent changes section if not already updated (check line 163)
+- [X] T036 Commit all changes with message following contract synchronization principle
 
 **Note**: All feature documentation already exists in specs/006-add-tweet-urls/ - no additional docs needed
 
