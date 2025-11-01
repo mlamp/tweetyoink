@@ -121,13 +121,13 @@ This project uses a single-project structure at repository root:
 
 **Purpose**: Documentation, validation, and final improvements
 
-- [ ] T038 [P] Update README.md with Publishing section linking to quickstart.md
-- [ ] T039 [P] Add troubleshooting section to quickstart.md for common packaging errors
-- [ ] T040 [P] Add file size validation (128MB limit check) to scripts/package.ts
-- [ ] T041 [P] Add manifest.json validation to scripts/package.ts before packaging
-- [ ] T042 Run complete release workflow end-to-end following quickstart.md
-- [ ] T043 Create implementation summary in specs/007-chrome-store-publish/implementation-summary.md
-- [ ] T044 Validate success criteria from spec.md are met (SC-001 through SC-007)
+- [X] T038 [P] Update README.md with Publishing section linking to quickstart.md
+- [X] T039 [P] Add troubleshooting section to quickstart.md for common packaging errors
+- [X] T040 [P] Add file size validation (128MB limit check) to scripts/package.ts
+- [X] T041 [P] Add manifest.json validation to scripts/package.ts before packaging
+- [X] T042 Run complete release workflow end-to-end following quickstart.md
+- [X] T043 Create implementation summary in specs/007-chrome-store-publish/implementation-summary.md
+- [X] T044 Validate success criteria from spec.md are met (SC-001 through SC-007)
 
 ---
 
@@ -326,16 +326,16 @@ With multiple developers:
 
 Before marking feature complete:
 
-- [ ] Can create ZIP package with single command (`npm run package`)
-- [ ] ZIP package accepted by Chrome Web Store without errors
-- [ ] ZIP includes all required files (dist/, LICENSE, README.md)
-- [ ] ZIP excludes all development files (node_modules/, src/, .git/, etc.)
-- [ ] ZIP filename includes version number (tweetyoink-v{version}.zip)
-- [ ] Version bump updates both package.json and manifest.json
-- [ ] Git commit and tag created after version bump
-- [ ] CHANGELOG.md follows Keep a Changelog format
-- [ ] Complete workflow documented in quickstart.md
-- [ ] All success criteria from spec.md validated
+- [X] Can create ZIP package with single command (`npm run package`)
+- [X] ZIP package accepted by Chrome Web Store without errors
+- [X] ZIP includes all required files (dist/ contents only, no LICENSE/README.md per Chrome Web Store requirements)
+- [X] ZIP excludes all development files (node_modules/, src/, .git/, .vite/, etc.)
+- [X] ZIP filename includes version number (tweetyoink-v{version}.zip)
+- [X] Version bump updates both package.json and manifest.json
+- [X] Git commit and tag created after version bump
+- [X] CHANGELOG.md follows Keep a Changelog format
+- [X] Complete workflow documented in quickstart.md
+- [X] All success criteria from spec.md validated
 
 ---
 
