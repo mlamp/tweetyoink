@@ -88,6 +88,28 @@ tweetyoink/
 - **@crxjs/vite-plugin** - Chrome extension support
 - **Manifest V3** - Latest Chrome extension standard
 
+## Publishing to Chrome Web Store
+
+For developers creating releases:
+
+```bash
+# Create a production-ready ZIP package
+npm run package
+
+# Bump version and create package
+npm run version:patch  # or version:minor, version:major
+npm run package
+```
+
+The `npm run package` command creates a Chrome Web Store-ready ZIP file in the `releases/` directory.
+
+📚 **Full Publishing Guide**: See [specs/007-chrome-store-publish/quickstart.md](specs/007-chrome-store-publish/quickstart.md) for:
+- Complete release workflow
+- Version management
+- Changelog maintenance
+- Troubleshooting guide
+- Chrome Web Store submission steps
+
 ## Legal & Ethical Use
 
 **TweetYoink is a personal research tool** for capturing publicly visible tweet data. It works like taking screenshots or copy/paste - but provides structured data.
