@@ -13,6 +13,10 @@ import type {
   DebugContentItem,
   DebugData,
 } from '../types/overlay';
+import {
+  hasRenderableTitle,
+  isDebugJsonContentItem,
+} from '../types/overlay';
 
 /**
  * Escape HTML characters to prevent XSS injection
@@ -205,6 +209,20 @@ function createEmptyStateMessage(message: string): HTMLElement {
 }
 
 /**
+ * Render title element for content item (Feature 008)
+ * Creates a bold header displayed above content
+ *
+ * @param title - Title text to display (already validated as non-empty)
+ * @returns DOM element for title (div.overlay-item-title)
+ */
+function renderTitle(title: string): HTMLElement {
+  const titleEl = document.createElement('div');
+  titleEl.className = 'overlay-item-title';
+  titleEl.textContent = title.trim(); // XSS-safe via textContent
+  return titleEl;
+}
+
+/**
  * Render a single content item
  *
  * @param item - Content item to render
@@ -214,8 +232,27 @@ function renderContentItem(item: ResponseContentItem): HTMLElement {
   const itemElement = document.createElement('div');
   itemElement.className = 'tweetyoink-overlay-item';
 
+  // Render title if present (Feature 008)
+  if (hasRenderableTitle(item)) {
+    itemElement.appendChild(renderTitle(item.title!));
+  }
+
   // Render based on content type
-  if (item.type === 'image') {
+  if (isDebugJsonContentItem(item)) {
+    // Feature 008: Debug JSON content with formatted display
+    const debugContent = renderDebugJsonContent(item.content);
+    itemElement.appendChild(debugContent);
+  } else if (item.type === 'image') {
+    // Image content - content must be string (URL)
+    if (typeof item.content !== 'string') {
+      logger.warn('[OverlayRenderer] Image content must be string URL, got:', typeof item.content);
+      const errorText = document.createElement('div');
+      errorText.textContent = 'Invalid image content (expected URL string)';
+      errorText.className = 'tweetyoink-overlay-error';
+      itemElement.appendChild(errorText);
+      return itemElement;
+    }
+
     // Create image element
     const img = document.createElement('img');
     img.src = item.content;
@@ -243,6 +280,16 @@ function renderContentItem(item: ResponseContentItem): HTMLElement {
 
     itemElement.appendChild(img);
   } else {
+    // Text content - must be string
+    if (typeof item.content !== 'string') {
+      logger.warn('[OverlayRenderer] Text content must be string, got:', typeof item.content);
+      const errorText = document.createElement('div');
+      errorText.textContent = 'Invalid text content (expected string)';
+      errorText.className = 'tweetyoink-overlay-error';
+      itemElement.appendChild(errorText);
+      return itemElement;
+    }
+
     // Text content - escape HTML and convert newlines to <br> for formatting
     // This is XSS-safe because we escape all HTML first, then only add <br> tags
     const escapedText = escapeHtml(item.content);
@@ -293,6 +340,43 @@ export function loadOverlayStyles(): void {
 
   // For now, we rely on CSS being injected by the extension build process
   // If styles are missing at runtime, the overlay will still render but may lack styling
+}
+
+// ============================================================================
+// Debug JSON Rendering (Feature: 008-overlay-enhancements)
+// ============================================================================
+
+/**
+ * Render debug JSON content with formatted display (Feature 008)
+ * Uses native JSON.stringify() with 2-space indentation
+ *
+ * @param content - JSON-serializable object or array
+ * @returns DOM element with formatted JSON (pre.overlay-debug-content)
+ */
+function renderDebugJsonContent(content: object | unknown[]): HTMLElement {
+  const pre = document.createElement('pre');
+  pre.className = 'overlay-debug-content';
+
+  try {
+    // Format JSON with 2-space indentation
+    const formatted = JSON.stringify(content, null, 2);
+
+    // Check size and warn if large (>50KB)
+    const sizeKB = new Blob([formatted]).size / 1024;
+    if (sizeKB > 50) {
+      logger.warn(`[OverlayRenderer] Large debug content: ${sizeKB.toFixed(1)}KB`);
+    }
+
+    // Render formatted JSON (XSS-safe via textContent)
+    pre.textContent = formatted;
+  } catch (error) {
+    // Handle circular references or non-serializable content
+    logger.warn('[OverlayRenderer] JSON serialization failed:', error);
+    pre.textContent = 'Error: Could not format debug content (invalid JSON structure)';
+    pre.className = 'overlay-debug-content overlay-debug-error';
+  }
+
+  return pre;
 }
 
 // ============================================================================

@@ -4,14 +4,26 @@
  */
 
 export interface ResponseContentItem {
-  /** Content type identifier */
-  type: 'text' | 'image' | 'link' | string;
+  /** Content type identifier (Feature 008: added 'debug' type) */
+  type: 'text' | 'image' | 'debug' | 'link' | string;
 
-  /** Content payload to display */
-  content: string;
+  /**
+   * Content payload to display
+   * - string for text/image/link types
+   * - object for debug type (Feature 008)
+   */
+  content: string | object;
+
+  /**
+   * Optional title displayed above content (Feature 008)
+   * When present and non-empty, renders as bold header above content.
+   * Applies to all content types (text, image, debug, link).
+   */
+  title?: string;
 
   /** Optional metadata (title, timestamp, etc.) */
   metadata?: {
+    /** @deprecated Use top-level title field instead (Feature 008) */
     title?: string;
     timestamp?: string;
     [key: string]: unknown;
@@ -62,6 +74,14 @@ export const DEFAULT_OVERLAY_CONFIG: OverlayConfig = {
  */
 export function isRenderableContentItem(item: ResponseContentItem): boolean {
   return item.type === 'text' && typeof item.content === 'string';
+}
+
+/**
+ * Check if title should be rendered (Feature 008)
+ * Title must be non-empty string after trimming whitespace
+ */
+export function hasRenderableTitle(item: ResponseContentItem): boolean {
+  return typeof item.title === 'string' && item.title.trim().length > 0;
 }
 
 // ============================================================================
@@ -196,4 +216,42 @@ export function hasRequestMetadata(
   return (
     'request_metadata' in data && typeof data.request_metadata === 'object'
   );
+}
+
+// ============================================================================
+// Debug JSON Display Types (Feature: 008-overlay-enhancements)
+// ============================================================================
+
+/**
+ * Debug JSON content item (Feature 008)
+ * Uses type='debug' with object content (not JSON string like Feature 005)
+ * Renders formatted JSON with 2-space indentation in monospaced font
+ */
+export interface DebugJsonContentItem extends ResponseContentItem {
+  type: 'debug';
+  content: object | unknown[]; // JSON-serializable data (not string)
+  title?: string; // Optional title for the debug block
+}
+
+/**
+ * Type guard for Feature 008 debug JSON items
+ * Checks for type='debug' AND object content (distinguishes from Feature 005)
+ */
+export function isDebugJsonContentItem(
+  item: ResponseContentItem
+): item is DebugJsonContentItem {
+  return item.type === 'debug' && typeof item.content === 'object';
+}
+
+/**
+ * Validate that content structure is appropriate for content type
+ * - debug type requires object content
+ * - other types require string content
+ */
+export function isValidContentItem(item: ResponseContentItem): boolean {
+  if (item.type === 'debug') {
+    return typeof item.content === 'object';
+  }
+  // For text, image, link types, content should be string
+  return typeof item.content === 'string';
 }

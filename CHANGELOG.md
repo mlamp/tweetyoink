@@ -8,15 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Feature 008**: Overlay enhancements with titles and debug JSON support
+  - Optional title field for all content types (text, image, debug, link)
+  - Titles render as bold headers above content blocks
+  - New "debug" content type for formatted JSON display
+  - Native JSON.stringify() with 2-space indentation
+  - Monospaced font rendering for debug JSON
+  - Error handling for circular references and non-serializable content
+  - Performance warnings for large JSON (>50KB)
+  - Mobile responsive and dark mode support for debug content
+  - 100% backward compatible with v1.1.0 API responses
 - Comprehensive CHANGELOG.md following Keep a Changelog format
 - Changelog workflow documentation in quickstart.md
 - Release notes guidance for Chrome Web Store submissions
 
 ### Changed
-- Nothing yet
+- ResponseContentItem interface now supports optional `title` field
+- Content field now accepts `string | object` union type (for debug JSON)
+- Response format contract updated from v1.1.0 to v1.2.0
 
 ### Deprecated
-- Nothing yet
+- `metadata.title` field (use top-level `title` field instead)
 
 ### Removed
 - Nothing yet
@@ -25,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Nothing yet
 
 ### Security
-- Nothing yet
+- Debug JSON rendering uses textContent for XSS protection
 
 ## [0.1.0] - 2025-11-01
 
