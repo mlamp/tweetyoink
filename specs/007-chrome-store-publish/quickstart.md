@@ -69,32 +69,154 @@ git status
 # 2. Run type checking (optional but recommended)
 npm run type-check
 
-# 3. Bump version for new release
+# 3. Update CHANGELOG.md with your changes
+# Edit CHANGELOG.md and move items from [Unreleased] to new version section
+# See "Changelog Management" section below for details
+
+# 4. Commit changelog updates
+git add CHANGELOG.md
+git commit -m "docs: update CHANGELOG for v0.2.0 release"
+
+# 5. Bump version for new release
 npm run version:minor
 # Output: version bumped to 0.2.0, git commit + tag created
 
-# 4. Create production package
+# 6. Create production package
 npm run package
 # Output:
 #   ✓ Production build completed
 #   ✓ Package created: releases/tweetyoink-v0.2.0.zip (5.2 MB)
 
-# 5. Verify the package
+# 7. Verify the package
 unzip -l releases/tweetyoink-v0.2.0.zip | head -20
 # Inspect contents to ensure proper files included
 
-# 6. Push version bump to GitHub
+# 8. Push version bump to GitHub
 git push origin main --follow-tags
 
-# 7. Upload to Chrome Web Store
+# 9. Upload to Chrome Web Store
 # Go to: https://chrome.google.com/webstore/devconsole
 # Navigate to your extension → "Package"
 # Drop releases/tweetyoink-v0.2.0.zip
-# Fill in release notes (use CHANGELOG.md)
+# Fill in release notes (copy from CHANGELOG.md)
 # Submit for review
 ```
 
-**Time**: ~5 minutes (excluding Chrome Web Store review time)
+**Time**: ~10 minutes (excluding Chrome Web Store review time)
+
+---
+
+## Changelog Management
+
+TweetYoink uses [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format for tracking changes. The changelog helps users understand what's new in each release and provides content for Chrome Web Store release notes.
+
+### When to Update CHANGELOG.md
+
+Update the changelog:
+- **Before creating a new release**: Move items from `[Unreleased]` to a new version section
+- **During development**: Add notable changes to the `[Unreleased]` section as you work
+- **After merging features**: Document user-facing changes
+
+### How to Format Changelog Entries
+
+The changelog is organized by version with these sections:
+
+```markdown
+## [Version] - YYYY-MM-DD
+
+### Added
+- New features, new functionality
+
+### Changed
+- Updates to existing features
+
+### Deprecated
+- Features that will be removed in future versions
+
+### Removed
+- Features that have been removed
+
+### Fixed
+- Bug fixes
+
+### Security
+- Security-related changes
+```
+
+### Workflow Example
+
+**During Development** (add to Unreleased):
+
+```markdown
+## [Unreleased]
+
+### Added
+- Dark mode support for overlay display
+- Export tweets as JSON feature
+
+### Fixed
+- Media extraction bug for quoted tweets
+```
+
+**Before Release** (move to version section):
+
+```markdown
+## [Unreleased]
+
+### Added
+- Nothing yet
+
+### Changed
+- Nothing yet
+
+## [0.2.0] - 2025-11-02
+
+### Added
+- Dark mode support for overlay display
+- Export tweets as JSON feature
+
+### Fixed
+- Media extraction bug for quoted tweets
+
+## [0.1.0] - 2025-11-01
+...
+```
+
+### Tips for Good Changelog Entries
+
+✅ **Do**:
+- Write for end users, not developers
+- Focus on "what changed" for users, not "how it was implemented"
+- Group related changes together
+- Use bullet points for readability
+- Include issue/PR numbers if relevant (e.g., "Fixed media extraction (#42)")
+
+❌ **Don't**:
+- Don't document internal refactoring (unless it affects users)
+- Don't include developer-only changes (dependency updates, test improvements)
+- Don't use technical jargon unnecessarily
+- Don't forget to update the version comparison links at the bottom
+
+### Using Changelog for Chrome Web Store Release Notes
+
+When uploading to Chrome Web Store:
+
+1. Open `CHANGELOG.md`
+2. Copy the section for your current version
+3. Paste into Chrome Web Store "What's new in this version?" field
+4. Optionally format for better readability (Chrome Web Store supports plain text)
+
+**Example**:
+```
+What's new in version 0.2.0:
+
+Added:
+- Dark mode support for overlay display
+- Export tweets as JSON feature
+
+Fixed:
+- Media extraction bug for quoted tweets
+```
 
 ---
 
@@ -308,10 +430,11 @@ After creating your package:
 
 ### ✅ Do
 
+- **Update CHANGELOG.md before each release**: Move items from [Unreleased] to a new version section before running `npm run version:*`
 - **Always run `npm run type-check`** before creating a release
 - **Test the extension locally** after building but before packaging
 - **Use semantic versioning correctly**: patch for fixes, minor for features, major for breaking changes
-- **Keep CHANGELOG.md updated** for user-facing release notes
+- **Document user-facing changes** in CHANGELOG.md as you develop features
 - **Verify package contents** before uploading to Chrome Web Store
 - **Push git tags** so GitHub has release history
 
