@@ -1,25 +1,25 @@
 <!--
   SYNC IMPACT REPORT
   ==================
-  Version Change: 1.0.0 → 1.1.0
+  Version Change: 1.1.0 → 1.2.0
 
   Modified Principles:
-  - New: VI. Logging Discipline (Development vs Production logging strategy)
+  - New: VII. API Contract Synchronization (Root contract must stay synchronized with feature contracts)
 
   Added Sections:
-  - Principle VI: Logging Discipline with implementation rules
+  - Principle VII: API Contract Synchronization with implementation rules and rationale
 
   Removed Sections: None
 
   Templates Requiring Updates:
-  ✅ plan-template.md - Validated: Constitution Check section can reference new logging principle
-  ✅ spec-template.md - Validated: No changes needed (logging is implementation detail)
-  ✅ tasks-template.md - Validated: No changes needed (logging is implementation detail)
-  ⚠ src/utils/logger.ts - REQUIRES UPDATE: Must be modified to allow error/warn in production
+  ✅ plan-template.md - Validated: Constitution Check section can reference new contract sync principle
+  ✅ spec-template.md - Validated: No changes needed (contract sync is implementation detail)
+  ✅ tasks-template.md - Validated: Should include contract update tasks when API changes
+  ✅ All templates verified for consistency
 
   Follow-up TODOs:
-  - Update src/utils/logger.ts to implement production error/warning logging per Principle VI
-  - Consider adding telemetry/error reporting service for production error aggregation
+  - Future features that modify API contracts MUST include task to update root api-contract.yaml
+  - Consider adding automated validation script to check contract synchronization
 -->
 
 # TweetYoink Constitution
@@ -139,6 +139,45 @@
 - Single point of control for future enhancements (e.g., remote error tracking)
 - Performance: debug/info logs completely removed from production bundle
 
+### VII. API Contract Synchronization
+
+**Root API contract MUST be updated whenever feature-specific contracts are modified.**
+
+**Rationale:**
+- Single source of truth prevents server implementers from seeing inconsistent contract versions
+- Root `api-contract.yaml` is the canonical reference for backend developers
+- Feature-specific contracts (in `specs/###-feature/contracts/`) are planning artifacts
+- Contract drift leads to production errors and support burden
+- Synchronization enforces contract versioning discipline
+
+**Implementation Rules:**
+- Root contract location: `api-contract.yaml` in repository root
+- Feature contracts location: `specs/###-feature/contracts/*.yaml`
+- When ANY feature modifies API request/response schemas:
+  - Feature contract MUST be created/updated in feature directory
+  - Root `api-contract.yaml` MUST be updated to match feature contract changes
+  - Version number in root contract MUST increment per semantic versioning rules
+  - Update MUST occur in same commit as feature implementation or as immediate follow-up
+- Contract versioning (follows semantic versioning):
+  - **MAJOR (X.0.0):** Breaking changes (removed fields, changed types, incompatible behavior)
+  - **MINOR (x.Y.0):** Backward compatible additions (new optional fields, new types)
+  - **PATCH (x.y.Z):** Clarifications, documentation updates, example fixes
+- Code review MUST verify root contract updated when feature modifies API surface
+- Root contract MUST reference feature number in version changelog/notes
+
+**Contract Synchronization Checklist:**
+1. Feature contract created in `specs/###-feature/contracts/`
+2. Root `api-contract.yaml` updated with same changes
+3. Version number incremented in root contract
+4. Changelog/notes added to root contract documenting what changed
+5. Both contracts validated for consistency (schema, examples, descriptions)
+
+**Example (Feature 008 - Overlay Enhancements):**
+- Feature contract: `specs/008-overlay-enhancements/contracts/response-format-v1.2.yaml`
+- Root contract: `api-contract.yaml` updated from v1.1.0 → v1.2.0
+- Changes: Added `title` field, added "debug" type, extended `content` to support objects
+- Both contracts synchronized, version incremented, changelog updated
+
 ## Architecture Standards
 
 ### Technology Stack Requirements
@@ -177,13 +216,17 @@ specs/[###-feature]/   # Feature planning and implementation tracking
 ├── data-model.md      # Data structures
 ├── quickstart.md      # Developer onboarding
 ├── checklists/        # Quality validation checklists
+├── contracts/         # Feature-specific API contracts (sync to root)
 └── implementation-summary.md  # Post-implementation summary (optional)
+
+api-contract.yaml      # Root API contract (canonical, principle VII)
 ```
 
 **Implementation Artifact Guidelines:**
 - Feature-specific documentation MUST go in `specs/[###-feature]/` directory
 - Implementation summaries, success criteria validations, and testing guides belong with their feature specs
 - Root directory should only contain project-wide documentation (README.md, LICENSE, etc.)
+- **API contracts:** Feature contracts in `specs/###-feature/contracts/`, synchronized to root `api-contract.yaml`
 
 ### Functional Requirements
 
@@ -246,6 +289,7 @@ specs/[###-feature]/   # Feature planning and implementation tracking
 - Linter MUST pass with zero warnings (configure in .eslintrc)
 - Manual smoke test on Twitter/X (capture a tweet successfully)
 - No direct `console.*` usage in application code (use `logger` wrapper)
+- **API contract synchronization:** If feature modifies API, root `api-contract.yaml` MUST be updated
 
 **Before Releasing:**
 - All functional requirements MUST be validated manually
@@ -253,6 +297,7 @@ specs/[###-feature]/   # Feature planning and implementation tracking
 - Settings persistence MUST be verified across browser restarts
 - Rate limiting MUST be verified to enforce limits
 - Production build MUST only log errors/warnings (verify console output)
+- **API contract versioning:** Root contract version MUST match latest feature contract changes
 
 ### Selector Maintenance
 
@@ -293,11 +338,12 @@ This constitution MAY be amended when:
 ### Compliance Verification
 
 **All PRs/reviews MUST:**
-- Verify alignment with Core Principles (I-VI)
+- Verify alignment with Core Principles (I-VII)
 - Check TypeScript strict mode compliance
 - Validate defensive extraction patterns used
 - Confirm user control/privacy requirements met
 - Verify logger wrapper usage (no direct console usage)
+- **Verify API contract synchronization** (if feature modifies API surface)
 
 **Complexity MUST be justified:**
 - New dependencies require documented rationale
@@ -308,7 +354,8 @@ This constitution MAY be amended when:
 
 For implementation-specific guidance beyond this constitution, refer to:
 - `docs/Constitution.md` - Original comprehensive project specification
-- `docs/API_CONTRACT.md` - Backend API specification (if created)
+- `api-contract.yaml` - **Canonical API contract** (single source of truth, principle VII)
+- `specs/###-feature/contracts/` - Feature-specific contract planning artifacts
 - `.specify/templates/` - Feature planning templates
 
-**Version**: 1.1.0 | **Ratified**: 2025-10-23 | **Last Amended**: 2025-10-31
+**Version**: 1.2.0 | **Ratified**: 2025-10-23 | **Last Amended**: 2025-11-01
