@@ -1,6 +1,6 @@
 {
   "name": "tweetyoink",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Capture tweets from Twitter/X for LLM analysis",
   "type": "module",
   "scripts": {
