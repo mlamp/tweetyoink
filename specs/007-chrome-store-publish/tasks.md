@@ -79,19 +79,19 @@ This project uses a single-project structure at repository root:
 
 ### Implementation for User Story 2
 
-- [ ] T018 [P] [US2] Create scripts/sync-version.ts script with tsx shebang and basic structure
-- [ ] T019 [P] [US2] Implement readPackageVersion() function to read version from package.json in scripts/sync-version.ts
-- [ ] T020 [P] [US2] Implement readManifestVersion() function to read version from public/manifest.json in scripts/sync-version.ts
-- [ ] T021 [US2] Implement syncVersionToManifest() function to copy version from package.json to manifest.json in scripts/sync-version.ts
-- [ ] T022 [US2] Add JSON formatting preservation (2-space indent + trailing newline) in scripts/sync-version.ts
-- [ ] T023 [US2] Add success/error reporting with process.exit(1) on failures in scripts/sync-version.ts
-- [ ] T024 [US2] Add "version" lifecycle hook to package.json: "version": "tsx scripts/sync-version.ts && git add public/manifest.json"
-- [ ] T025 [US2] Add convenience scripts to package.json: "version:patch", "version:minor", "version:major"
-- [ ] T026 [US2] Test patch version bump: run npm run version:patch and verify both files updated to 0.1.1
-- [ ] T027 [US2] Test minor version bump: run npm run version:minor and verify both files updated to 0.2.0
-- [ ] T028 [US2] Test major version bump: run npm run version:major and verify both files updated to 1.0.0
-- [ ] T029 [US2] Verify git commit and tag creation after version bump (check git log and git tag)
-- [ ] T030 [US2] Document version bump workflow in README.md or quickstart.md
+- [X] T018 [P] [US2] Create scripts/sync-version.ts script with tsx shebang and basic structure
+- [X] T019 [P] [US2] Implement readPackageVersion() function to read version from package.json in scripts/sync-version.ts
+- [X] T020 [P] [US2] Implement readManifestVersion() function to read version from public/manifest.json in scripts/sync-version.ts
+- [X] T021 [US2] Implement syncVersionToManifest() function to copy version from package.json to manifest.json in scripts/sync-version.ts
+- [X] T022 [US2] Add JSON formatting preservation (2-space indent + trailing newline) in scripts/sync-version.ts
+- [X] T023 [US2] Add success/error reporting with process.exit(1) on failures in scripts/sync-version.ts
+- [X] T024 [US2] Add "version" lifecycle hook to package.json: "version": "tsx scripts/sync-version.ts && git add public/manifest.json"
+- [X] T025 [US2] Add convenience scripts to package.json: "version:patch", "version:minor", "version:major"
+- [X] T026 [US2] Test patch version bump: run npm run version:patch and verify both files updated to 0.1.1
+- [X] T027 [US2] Test minor version bump: run npm run version:minor and verify both files updated to 0.2.0
+- [X] T028 [US2] Test major version bump: run npm run version:major and verify both files updated to 1.0.0
+- [X] T029 [US2] Verify git commit and tag creation after version bump (check git log and git tag)
+- [X] T030 [US2] Document version bump workflow in README.md or quickstart.md
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently - packaging works AND version management is automated
 
