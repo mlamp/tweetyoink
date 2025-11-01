@@ -1,9 +1,13 @@
 {
   "manifest_version": 3,
   "name": "TweetYoink",
-  "version": "0.2.0",
+  "version": "0.1.1",
   "description": "Capture tweets from Twitter/X for LLM analysis",
-  "permissions": ["storage", "activeTab", "alarms"],
+  "permissions": [
+    "storage",
+    "activeTab",
+    "alarms"
+  ],
   "optional_host_permissions": [
     "http://*/*",
     "https://*/*"
@@ -16,10 +20,17 @@
     "service_worker": "src/service-worker.ts",
     "type": "module"
   },
-  "content_scripts": [{
-    "matches": ["https://twitter.com/*", "https://x.com/*"],
-    "js": ["src/content-script.ts"]
-  }],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://twitter.com/*",
+        "https://x.com/*"
+      ],
+      "js": [
+        "src/content-script.ts"
+      ]
+    }
+  ],
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_icon": {
