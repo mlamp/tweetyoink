@@ -1,16 +1,17 @@
 openapi: 3.0.0
 info:
   title: TweetYoink Server Response Format
-  version: 1.1.0
+  version: 1.2.0
   description: |
     API contract for TweetYoink server responses.
 
-    This specification documents the expected response format for servers
-    that process TweetYoink captures. Feature 004 adds support for structured
-    content items that can be displayed in an overlay.
+    **Version 1.2.0 Changes (Feature 008)**:
+    - Added optional `title` field to ResponseContentItem (all types)
+    - Added new "debug" content type for JSON object display
+    - Extended `content` field to support object type for debug content
 
-    **Backward Compatibility**: Servers that return legacy format (non-array result)
-    will continue to work. The extension handles conversion internally.
+    **Backward Compatibility**: All v1.1.0 responses remain valid v1.2.0 responses.
+    The title field is optional, and debug type is additive alongside existing types.
 
 servers:
   - url: http://localhost:3000
@@ -28,7 +29,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: './async-response-api.yaml#/components/schemas/TweetData'
+              $ref: '#/components/schemas/TweetData'
       responses:
         '200':
           description: Successful submission
@@ -63,6 +64,10 @@ paths:
 
 components:
   schemas:
+    TweetData:
+      type: object
+      description: Tweet capture data sent to server (unchanged from v1.1.0)
+
     ResponseContentItem:
       type: object
       required:
@@ -71,32 +76,50 @@ components:
       properties:
         type:
           type: string
-          enum: [text, image, link, unknown]
+          enum: [text, image, debug, link, unknown]
           description: |
             Content type identifier. Determines how the extension renders the item.
             - "text": Plain text content (rendered via textContent - XSS safe)
             - "image": Image URL (future support)
+            - "debug": JSON object (NEW in v1.2.0 - formatted with 2-space indent)
             - "link": Hyperlink URL (future support)
             - Other values: Gracefully ignored by extension
         content:
-          type: string
+          oneOf:
+            - type: string
+              description: For text, image, link types
+            - type: object
+              description: For debug type - any JSON-serializable object
           description: |
             Content payload. Interpretation depends on type:
             - type="text": Plain text string to display
             - type="image": Image URL (future)
+            - type="debug": JSON object to format and display (NEW in v1.2.0)
             - type="link": Hyperlink URL (future)
+        title:
+          type: string
+          description: |
+            **NEW in v1.2.0**: Optional title displayed above content.
+            Applies to all content types (text, image, debug, link).
+            If present and non-empty, renders as bold header above content block.
+            If empty or missing, no title header is shown.
         metadata:
           type: object
           additionalProperties: true
           description: |
             Optional metadata for future extensions.
-            Examples: title, timestamp, confidence, etc.
+            Examples: timestamp, confidence, etc.
+
+            **Deprecation Note**: metadata.title from v1.1.0 is deprecated
+            in favor of top-level title field.
+
       example:
         type: text
+        title: "Sentiment Analysis"
         content: "This tweet demonstrates positive sentiment (95% confidence)"
         metadata:
-          title: "Sentiment Analysis"
-          timestamp: "2025-10-29T12:00:00Z"
+          confidence: 0.95
+          timestamp: "2025-11-01T12:00:00Z"
 
     PostResponse:
       oneOf:
@@ -120,21 +143,25 @@ components:
               items:
                 $ref: '#/components/schemas/ResponseContentItem'
               description: |
-                **Recommended format** for feature 004 overlay support.
+                **Recommended format** for overlay support.
                 Array of content items that will be displayed in overlay.
             - type: object
               description: |
                 **Legacy format** (backward compatible).
                 Extension logs to console but does not display in overlay.
+
       example:
         status: completed
         result:
           - type: text
-            content: "Analysis: This tweet shows positive sentiment"
-          - type: text
-            content: "Detected topics: technology, AI, innovation"
-          - type: text
-            content: "Engagement prediction: High (estimated 500+ likes)"
+            title: "Analysis Summary"
+            content: "Positive sentiment detected with high confidence"
+          - type: debug
+            title: "Processing Details"
+            content:
+              model: "gpt-4"
+              processing_time_ms: 826
+              confidence: 0.95
 
     AsyncResponse:
       type: object
@@ -163,6 +190,7 @@ components:
         message:
           type: string
           description: Human-readable status message (optional)
+
       example:
         status: processing
         requestId: "req_1698576000_abc123"
@@ -196,6 +224,7 @@ components:
             message:
               type: string
               description: Human-readable error message
+
       example:
         status: error
         error:
@@ -203,84 +232,117 @@ components:
           message: "Rate limit exceeded. Try again in 60 seconds."
 
   examples:
-    SyncWithOverlayContent:
-      summary: Sync response with overlay content
-      description: Server returns immediately with multiple content items
+    SyncWithTitlesAndDebug:
+      summary: Sync response with titles and debug content (v1.2.0)
+      description: Server returns immediately with titled items and debug JSON
       value:
         status: completed
         result:
           - type: text
-            content: "Sentiment: Positive (confidence: 95%)"
+            title: "Sentiment Analysis"
+            content: "Positive (confidence: 95%)"
           - type: text
-            content: "Key topics: AI, machine learning, technology"
-          - type: text
-            content: "Predicted engagement: 500+ likes, 100+ retweets"
+            title: "Key Topics"
+            content: "AI, machine learning, technology"
+          - type: debug
+            title: "Processing Metrics"
+            content:
+              total_time_ms: 826
+              model: "gpt-4"
+              tokens_used: 1234
+              stages: ["sentiment", "topics", "entities"]
 
-    SyncLegacyFormat:
-      summary: Sync response (legacy format)
-      description: Backward compatible - works but no overlay display
-      value:
-        status: completed
-        result:
-          message: "Tweet analyzed successfully"
-          sentiment: "positive"
-          topics: ["AI", "technology"]
-
-    AsyncInitiated:
-      summary: Async processing started
-      description: Server accepts request, returns ID for polling
-      value:
-        status: pending
-        requestId: "req_1698576000_abc123"
-        estimatedDuration: 30
-
-    AsyncProcessing:
-      summary: Async processing in progress
-      description: Status endpoint returns progress update
-      value:
-        status: processing
-        requestId: "req_1698576000_abc123"
-        progress: 0.65
-        message: "Analyzing tweet content..."
-
-    AsyncCompleted:
-      summary: Async processing completed
-      description: Status endpoint returns final results
+    BackwardCompatibleV11:
+      summary: Backward compatible response (v1.1.0 format)
+      description: Existing v1.1.0 responses work without changes
       value:
         status: completed
         result:
           - type: text
-            content: "Analysis complete: Positive sentiment detected"
+            content: "Analysis: This tweet shows positive sentiment"
           - type: text
-            content: "Processing time: 28 seconds"
+            content: "Detected topics: technology, AI, innovation"
 
-    ErrorRateLimit:
-      summary: Rate limit error
-      description: Server rejects due to rate limiting
+    DebugOnlyResponse:
+      summary: Debug-only response for development
+      description: Useful for inspecting raw processing data
       value:
-        status: error
-        error:
-          code: "RATE_LIMIT_EXCEEDED"
-          message: "Rate limit exceeded. Try again in 60 seconds."
+        status: completed
+        result:
+          - type: debug
+            title: "Full Analysis Results"
+            content:
+              sentiment:
+                score: 0.95
+                label: "positive"
+                confidence: 0.98
+              entities:
+                - text: "AI"
+                  type: "technology"
+                  confidence: 0.98
+                - text: "innovation"
+                  type: "concept"
+                  confidence: 0.87
+              topics: ["technology", "ai", "future"]
+              metadata:
+                processing_time: "826ms"
+                model: "gpt-4"
+
+    MixedTitledUntitled:
+      summary: Mixed titled and untitled content
+      description: Some items have titles, others don't (backward compatible)
+      value:
+        status: completed
+        result:
+          - type: text
+            title: "Summary"
+            content: "Main findings from analysis"
+          - type: text
+            content: "Additional notes without title"
+          - type: debug
+            title: "Debug Info"
+            content:
+              version: "1.2.0"
+              timestamp: "2025-11-01T12:00:00Z"
 
 notes:
   - |
-    **Feature 004 Overlay Support**:
-    To enable overlay display, return `result` as an array of ResponseContentItem objects.
-    Items with `type="text"` will be rendered in the overlay.
+    **Feature 008 Enhancements (v1.2.0)**:
+    - All content types (text, image, debug, link) can now have optional title field
+    - New "debug" content type displays JSON objects with 2-space indentation and monospace font
+    - Titles render as bold headers above content for better organization
+    - 100% backward compatible - title is optional, existing responses work unchanged
+
+  - |
+    **Title Usage Guidelines**:
+    - Keep titles concise (recommended: <50 characters)
+    - Use sentence case or title case
+    - Titles help users quickly scan multiple content items
+    - Empty/whitespace-only titles are treated as missing (no header rendered)
+
+  - |
+    **Debug Type Guidelines**:
+    - Use for structured technical data, processing metrics, raw analysis results
+    - Content must be JSON-serializable (no functions, circular refs, symbols)
+    - Recommended max size: 50KB (larger JSON may impact performance)
+    - Useful for development, troubleshooting, and power users
 
   - |
     **Backward Compatibility**:
-    Legacy servers returning non-array `result` will continue to work.
-    Data is logged to console but not displayed in overlay.
+    - v1.1.0 servers continue to work without modifications
+    - Gradual adoption: add title field to existing items incrementally
+    - Add debug items alongside existing text items
+    - No breaking changes, no forced migration
 
   - |
     **Content Safety**:
-    Extension uses `textContent` for rendering, not `innerHTML`.
-    Server does not need to sanitize content - extension handles XSS protection.
+    - Extension uses `textContent` for rendering titles and text, not `innerHTML`
+    - Debug JSON rendered as formatted text (XSS-safe)
+    - Server does not need to sanitize content - extension handles XSS protection
 
   - |
     **Performance Recommendations**:
     - Keep array length ≤ 20 items for optimal UX (extension supports up to 50)
-    - Keep content strings ≤ 1000 characters per item for readability
-    - Use metadata for structured data instead of embedding in content string
+    - Keep text content ≤ 1000 characters per item for readability
+    - Keep debug JSON ≤ 50KB for performance (warning shown above this)
+    - Use title field to provide context without bloating content
