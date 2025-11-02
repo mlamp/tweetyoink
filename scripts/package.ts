@@ -12,6 +12,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 import archiver from 'archiver';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -61,6 +62,51 @@ function getVersion(): string {
   } catch (error) {
     throw new Error(`Failed to read version from package.json: ${error}`);
   }
+}
+
+/**
+ * Check for version conflicts with existing git tags and release files
+ * Prevents publishing a version that already exists in the Chrome Web Store
+ * @param version The version to check
+ * @throws Error if version conflicts are detected
+ */
+function checkVersionConflicts(version: string): void {
+  const versionTag = `v${version}`;
+  const zipPath = path.join(RELEASES_DIR, `tweetyoink-v${version}.zip`);
+
+  const conflicts: string[] = [];
+
+  // Check if git tag already exists
+  try {
+    const tags = execSync('git tag --list', { encoding: 'utf-8' });
+    if (tags.split('\n').includes(versionTag)) {
+      conflicts.push(`Git tag '${versionTag}' already exists`);
+    }
+  } catch (error) {
+    // Git command failed, likely not a git repo - skip this check
+    console.log('⚠️  Warning: Could not check git tags (not a git repository?)');
+  }
+
+  // Check if ZIP file already exists
+  if (fs.existsSync(zipPath)) {
+    conflicts.push(`Release file already exists: ${zipPath}`);
+  }
+
+  // If conflicts found, throw error
+  if (conflicts.length > 0) {
+    throw new Error(
+      `\n❌ Version ${version} conflicts detected:\n` +
+      conflicts.map(c => `   - ${c}`).join('\n') +
+      `\n\n` +
+      `This version may already be published to Chrome Web Store.\n` +
+      `To fix:\n` +
+      `  1. Check current Chrome Web Store version\n` +
+      `  2. Bump version in package.json (npm run version:patch or version:minor)\n` +
+      `  3. Run 'npm run package' again\n`
+    );
+  }
+
+  console.log('✓ No version conflicts detected');
 }
 
 /**
@@ -206,6 +252,9 @@ async function main(): Promise<void> {
 
     // Get version from package.json
     const version = getVersion();
+
+    // Check for version conflicts (git tags, existing ZIP files)
+    checkVersionConflicts(version);
 
     // Create releases directory
     createReleasesDirectory();
