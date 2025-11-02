@@ -223,6 +223,39 @@ function renderTitle(title: string): HTMLElement {
 }
 
 /**
+ * Render metadata as pretty-printed JSON
+ * Displays metadata below content as collapsible section
+ *
+ * @param metadata - Metadata object to display
+ * @returns DOM element for metadata display (details.overlay-item-metadata)
+ */
+function renderMetadata(metadata: Record<string, unknown>): HTMLElement {
+  const details = document.createElement('details');
+  details.className = 'overlay-item-metadata';
+
+  const summary = document.createElement('summary');
+  summary.textContent = 'Metadata';
+  summary.className = 'overlay-metadata-summary';
+  details.appendChild(summary);
+
+  const pre = document.createElement('pre');
+  pre.className = 'overlay-metadata-content';
+
+  try {
+    // Pretty-print JSON with 2-space indentation
+    const formatted = JSON.stringify(metadata, null, 2);
+    pre.textContent = formatted; // XSS-safe via textContent
+  } catch (error) {
+    logger.warn('[OverlayRenderer] Failed to format metadata:', error);
+    pre.textContent = 'Error: Could not format metadata (circular reference or non-serializable)';
+    pre.className = 'overlay-metadata-content overlay-metadata-error';
+  }
+
+  details.appendChild(pre);
+  return details;
+}
+
+/**
  * Render a single content item
  *
  * @param item - Content item to render
@@ -292,9 +325,12 @@ function renderContentItem(item: ResponseContentItem): HTMLElement {
 
     // Text content - escape HTML and convert newlines to <br> for formatting
     // This is XSS-safe because we escape all HTML first, then only add <br> tags
+    // Wrap in a div to avoid overwriting title element with innerHTML
+    const contentDiv = document.createElement('div');
     const escapedText = escapeHtml(item.content);
     const formattedText = escapedText.replace(/\n/g, '<br>');
-    itemElement.innerHTML = formattedText;
+    contentDiv.innerHTML = formattedText;
+    itemElement.appendChild(contentDiv);
   }
 
   // Add data attributes for debugging
@@ -307,6 +343,11 @@ function renderContentItem(item: ResponseContentItem): HTMLElement {
     } catch (error) {
       logger.warn('[OverlayRenderer] Failed to serialize metadata:', error);
     }
+
+    // Show metadata as pretty-printed JSON below content
+    // Always enabled to help users see full response details
+    const metadataDisplay = renderMetadata(item.metadata);
+    itemElement.appendChild(metadataDisplay);
   }
 
   return itemElement;

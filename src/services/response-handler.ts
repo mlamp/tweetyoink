@@ -109,9 +109,9 @@ export function parseServerResponse(response: PostResponse): ParsedResponse {
         `[ResponseHandler] Separated ${regularItems.length} regular items and ${debugItems.length} debug items`
       );
 
-      // Filter for displayable items (type="text" and type="image") from regular items
+      // Filter for displayable items (type="text", type="image", and type="debug") from regular items
       const displayableItems = regularItems.filter((item) => {
-        if (item.type === 'text' || item.type === 'image') {
+        if (item.type === 'text' || item.type === 'image' || item.type === 'debug') {
           return true;
         } else {
           logger.debug(`[ResponseHandler] Skipping unsupported item type (type="${item.type}")`);
@@ -119,7 +119,7 @@ export function parseServerResponse(response: PostResponse): ParsedResponse {
         }
       });
 
-      logger.debug(`[ResponseHandler] Found ${displayableItems.length} displayable items (text + image)`);
+      logger.debug(`[ResponseHandler] Found ${displayableItems.length} displayable items (text + image + debug)`);
 
       // No displayable items after filtering
       if (displayableItems.length === 0) {
@@ -161,6 +161,7 @@ export function parseServerResponse(response: PostResponse): ParsedResponse {
 
 /**
  * Validate if an item matches ResponseContentItem interface
+ * Feature 008: Updated to support debug type with object content and title field
  *
  * @param item - Item to validate
  * @returns True if item has required fields
@@ -172,16 +173,34 @@ function isValidContentItem(item: unknown): boolean {
 
   const obj = item as Record<string, unknown>;
 
-  // Required fields
+  // Required field: type must be string
   if (typeof obj.type !== 'string') {
     return false;
   }
 
-  if (typeof obj.content !== 'string') {
+  // Required field: content must be string OR object (Feature 008: debug type supports object)
+  if (typeof obj.content !== 'string' && typeof obj.content !== 'object') {
     return false;
   }
 
-  // Optional metadata (if present, must be object)
+  // For debug type, content must be object (not string)
+  if (obj.type === 'debug' && typeof obj.content !== 'object') {
+    return false;
+  }
+
+  // For non-debug types, content must be string (not object)
+  if (obj.type !== 'debug' && typeof obj.content !== 'string') {
+    return false;
+  }
+
+  // Optional field: title (Feature 008)
+  if (obj.title !== undefined) {
+    if (typeof obj.title !== 'string') {
+      return false;
+    }
+  }
+
+  // Optional field: metadata
   if (obj.metadata !== undefined) {
     if (typeof obj.metadata !== 'object' || obj.metadata === null) {
       return false;
