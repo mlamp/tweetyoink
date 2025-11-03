@@ -32,7 +32,7 @@ This server:
 
 The server **MUST** implement the OpenAPI 3.0.3 specification defined here:
 
-**📄 API Specification**: https://github.com/mlamp/tweetyoink/blob/004-response-overlay/api-contract.yaml
+**📄 API Specification**: https://github.com/mlamp/tweetyoink/blob/main/api-contract.yaml
 
 ### Key API Requirements
 
@@ -663,7 +663,7 @@ The server is **production-ready** when:
 
 ## Additional Resources
 
-- **OpenAPI Spec**: https://github.com/mlamp/tweetyoink/blob/004-response-overlay/api-contract.yaml
+- **OpenAPI Spec**: https://github.com/mlamp/tweetyoink/blob/main/api-contract.yaml
 - **TweetYoink Extension**: https://github.com/mlamp/tweetyoink
 - **LiteLLM Docs**: https://docs.litellm.ai/
 - **FastAPI Docs**: https://fastapi.tiangolo.com/
