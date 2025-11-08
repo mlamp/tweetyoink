@@ -5,21 +5,7 @@ All notable changes to TweetYoink will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Changelog Format (as of v0.4.0)
-
-Changes are organized by **OpenSpec capability** instead of feature numbers:
-
-- **`tweet-capture`**: Tweet extraction, button injection, URL tracking
-- **`backend-integration`**: Server communication, configuration, polling
-- **`response-display`**: Overlay UI, loading states, debug display
-- **`release-management`**: Versioning, packaging, Chrome Web Store publishing
-
-**Example entry:**
-```markdown
-### Added
-- **`response-display` capability**: New feature description
-  - Detailed changes...
-```
+For changelog format conventions, see `.github/CHANGELOG_TEMPLATE.md`.
 
 ## [Unreleased]
 
