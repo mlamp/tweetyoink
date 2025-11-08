@@ -245,20 +245,13 @@ function validateManifest() {
 
 ### Decision: Changelog Management
 
-**Approach:** Optional CHANGELOG.md with manual editing:
-```markdown
-# Changelog
+**Approach:** Optional CHANGELOG.md with manual editing following Keep a Changelog format.
 
-## [0.2.0] - 2025-11-05
-- Added async loading indicators
-- Enhanced overlay with debug JSON support
-- Fixed button positioning on mobile
-
-## [0.1.0] - 2025-10-31
-- Initial release
-- Tweet capture functionality
-- Backend integration
-```
+**Format Documentation:** See `.github/CHANGELOG_TEMPLATE.md` for:
+- Capability-based organization conventions
+- Entry templates and examples
+- Writing guidelines and best practices
+- Versioning principles
 
 **Version bump can optionally create template:**
 ```typescript
@@ -267,7 +260,7 @@ function appendChangelogTemplate(version: string) {
     fs.writeFileSync('CHANGELOG.md', '# Changelog\n\n');
   }
 
-  const template = `## [${version}] - ${new Date().toISOString().split('T')[0]}\n- \n\n`;
+  const template = `## [${version}] - ${new Date().toISOString().split('T')[0]}\n\n### Added\n- \n\n### Changed\n- \n\n### Fixed\n- \n\n`;
   const changelog = fs.readFileSync('CHANGELOG.md', 'utf8');
 
   // Insert after header
@@ -284,8 +277,9 @@ function appendChangelogTemplate(version: string) {
 1. **Automated changelog from git commits** - Rejected: Commits may not be user-facing
 2. **Required changelog entries** - Rejected: Unnecessary friction for minor updates
 3. **No changelog support** - Rejected: Helpful for tracking what changed
+4. **Embed format docs in CHANGELOG.md** - Rejected: Clutters actual changelog with meta-documentation
 
-**Rationale:** Optional approach provides flexibility. Manual editing ensures quality, user-friendly release notes.
+**Rationale:** Optional approach provides flexibility. Manual editing ensures quality, user-friendly release notes. Separate template file keeps CHANGELOG.md clean with only actual release entries.
 
 ## Risks / Trade-offs
 
