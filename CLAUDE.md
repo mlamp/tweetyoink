@@ -214,5 +214,19 @@ This OpenAPI 3.0 specification defines the contract between the TweetYoink exten
 
 **When modifying the API**: Root contract MUST be updated in same commit/PR with version increment.
 
+## Changelog
+
+**Location**: `CHANGELOG.md` in repository root
+
+This project maintains a changelog following [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format with OpenSpec capability-based organization.
+
+**Format Guide**: `.github/CHANGELOG_TEMPLATE.md` contains:
+- Capability organization conventions
+- Entry templates and examples
+- Writing guidelines
+- Versioning principles
+
+**When releasing**: Update CHANGELOG.md with changes organized by capability (tweet-capture, backend-integration, response-display, release-management) and change type (Added, Changed, Fixed, etc.).
+
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
